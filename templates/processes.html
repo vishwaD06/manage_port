@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}Eco-Processing & Bio-Conversion - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <h1 style="font-size: 1.8rem; color: var(--dark);">Biological & Material Conversion Operations</h1>
+        <p style="color: var(--text-muted);">
+            Tracking composting cycles, anaerobic biogas digesters, and industrial packaging recycling.
+        </p>
+    </div>
+    {% if session.get('user_type') in ['Admin', 'Recycler'] %}
+        <button class="btn btn-accent" onclick="openModal('newProcessModal')">
+            <i class="fa-solid fa-recycle"></i> Start Conversion Run
+        </button>
+    {% endif %}
+</div>
+
+<!-- Conversion Yields & What Happens to Inedible Food Benchmark Card -->
+<div class="card" style="margin-top: 1.5rem; background: #FAFDF9; border: 1px solid #D8F3DC; border-left: 5px solid var(--accent-orange);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.75rem;">
+        <div>
+            <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--accent-orange); font-weight: 700; letter-spacing: 0.5px;">
+                <i class="fa-solid fa-flask"></i> Municipal Valorization Benchmarks
+            </div>
+            <h3 style="margin: 0.2rem 0; font-size: 1.2rem; color: var(--dark);">
+                Biological & Physical Conversion Ratios for Waste Food
+            </h3>
+        </div>
+        <div>
+            <span class="badge badge-completed"><i class="fa-solid fa-circle-check"></i> Standard Operating Ratios</span>
+        </div>
+    </div>
+
+    <div class="grid-3" style="gap: 1rem;">
+        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.4rem; color: #166534; font-weight: 700; font-size: 0.9rem;">
+                <i class="fa-solid fa-seedling"></i> Aerobic Composting Yield
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0.35rem 0 0.5rem 0;">
+                Food scraps decompose under aerated microbial thermophilic conditions into high-nitrogen soil humates.
+            </p>
+            <div style="font-weight: 700; color: #166534; font-size: 0.95rem;">
+                100 kg Wet Waste &rarr; ~35 kg Bio-Compost
+            </div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.4rem; color: #0288D1; font-weight: 700; font-size: 0.9rem;">
+                <i class="fa-solid fa-fire-flame-simple"></i> Anaerobic Biogas / Bio-CNG
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0.35rem 0 0.5rem 0;">
+                Cooked food sludges are digested anaerobically to capture biomethane, preventing atmospheric release.
+            </p>
+            <div style="font-weight: 700; color: #0288D1; font-size: 0.95rem;">
+                100 kg Food Slurry &rarr; 8–12 m³ Bio-CNG (~12 kWh)
+            </div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.4rem; color: #9333EA; font-weight: 700; font-size: 0.9rem;">
+                <i class="fa-solid fa-recycle"></i> Material Sorting & Packaging
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0.35rem 0 0.5rem 0;">
+                Packaging liners, corrugated cartons, and dry vegetative biomass transformed into clean secondary inputs.
+            </p>
+            <div style="font-weight: 700; color: #9333EA; font-size: 0.95rem;">
+                90–95% Clean Material Diversion Rate
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Process History Table -->
+<div class="card" style="margin-top: 1.5rem;">
+    {% if processes %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Process ID</th>
+                        <th>Center</th>
+                        <th>Conversion Technology</th>
+                        <th>Input Waste</th>
+                        <th>Recovered Output</th>
+                        <th>Cycle Start</th>
+                        <th>Completion</th>
+                        <th>Technical Remarks</th>
+                        <th>Status</th>
+                        <th>Certificate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in processes %}
+                        <tr>
+                            <td>#{{ p.Process_ID }}</td>
+                            <td><strong>{{ p.Center_Name }}</strong></td>
+                            <td>
+                                {% if p.Process_Type == 'Composting' %}
+                                    <span class="badge badge-available"><i class="fa-solid fa-seedling"></i> {{ p.Process_Type }}</span>
+                                {% elif p.Process_Type == 'Biogas' %}
+                                    <span class="badge badge-scheduled"><i class="fa-solid fa-fire-flame-simple"></i> {{ p.Process_Type }}</span>
+                                {% else %}
+                                    <span class="badge badge-initiated"><i class="fa-solid fa-recycle"></i> {{ p.Process_Type }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ p.Input_Quantity }} kg</td>
+                            <td><strong style="color: var(--badge-green);">{{ p.Output_Quantity }} kg / m³</strong></td>
+                            <td>{{ p.Start_Date|date_format }}</td>
+                            <td>{{ p.End_Date|date_format if p.End_Date else 'In Progress' }}</td>
+                            <td><small>{{ p.Remarks }}</small></td>
+                            <td>
+                                {% if p.Status == 'Completed' %}
+                                    <span class="badge badge-completed">Completed</span>
+                                {% elif p.Status == 'In Progress' %}
+                                    <span class="badge badge-scheduled">In Progress</span>
+                                {% else %}
+                                    <span class="badge badge-pending">Initiated</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if p.Status == 'Completed' %}
+                                    <a href="{{ url_for('process_certificate', process_id=p.Process_ID) }}" class="btn btn-sm btn-outline" title="Official Eco-Conversion Certificate" target="_blank" style="padding: 0.25rem 0.5rem; font-size: 0.78rem; white-space: nowrap;">
+                                        <i class="fa-solid fa-award" style="color: var(--primary);"></i> Green Cert
+                                    </a>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-size: 0.78rem;">In Processing</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 3rem; color: #CBD5E1; margin-bottom: 0.75rem;"><i class="fa-solid fa-leaf"></i></div>
+            <h3>No Processing Activities Recorded</h3>
+            <p style="margin-top: 0.35rem;">Start an aerobic composting, biogas, or recycling run.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal: Record Conversion Run -->
+<div id="newProcessModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-recycle"></i> Record Conversion Run</h3>
+            <button class="modal-close" onclick="closeModal('newProcessModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('new_process') }}" method="POST">
+            <div class="modal-body">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Processing Center</label>
+                        <select name="center_id" class="form-control" required>
+                            {% for c in centers %}
+                                <option value="{{ c.Center_ID }}">{{ c.Center_Name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Conversion Technology</label>
+                        <select name="process_type" class="form-control" required>
+                            <option value="Composting" selected>Aerobic Composting (Organic Fertilizer)</option>
+                            <option value="Biogas">Anaerobic Digestion (Methane Gas)</option>
+                            <option value="Recycling">Packaging Material Recycling</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Link Pending Waste Batch (Optional)</label>
+                    <select name="waste_id" class="form-control">
+                        <option value="">General Intake Batch</option>
+                        {% for w in pending_waste %}
+                            <option value="{{ w.Waste_ID }}">#{{ w.Waste_ID }}: {{ w.Waste_Type }} ({{ w.Quantity }} {{ w.Unit }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Input Waste Quantity (kg)</label>
+                        <input type="number" step="0.5" name="input_quantity" class="form-control" placeholder="e.g. 250" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Output Resource Yield (kg or m³)</label>
+                        <input type="number" step="0.5" name="output_quantity" class="form-control" placeholder="e.g. 80" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Run Status</label>
+                    <select name="status" class="form-control">
+                        <option value="Completed" selected>Completed</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Initiated">Initiated</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Process Remarks</label>
+                    <textarea name="remarks" class="form-control" rows="2" placeholder="e.g. C:N ratio balanced with dry leaves, moisture 55%, temperature monitored."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('newProcessModal')">Cancel</button>
+                <button type="submit" class="btn btn-accent"><i class="fa-solid fa-play"></i> Commit Activity</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

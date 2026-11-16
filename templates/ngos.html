@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Certified NGOs & Food Beneficiaries - Smart Food Rescue System{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(82, 183, 136, 0.15); color: var(--primary-light); font-size: 0.8rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: var(--radius-full); text-transform: uppercase; margin-bottom: 0.5rem;">
+            <i class="fa-solid fa-handshake-angle"></i> Entity: NGO / RECEIVER
+        </div>
+        <h1 style="font-size: 1.85rem; color: var(--dark); font-family: 'Outfit', sans-serif;">
+            Certified Partner NGOs & Food Relief Banks
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Official directory of verified NGOs, homeless shelters, and community kitchens authorized to claim surplus food and deliver to municipal collection hubs.
+        </p>
+    </div>
+    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+        <a href="{{ url_for('donations_list') }}" class="btn btn-accent">
+            <i class="fa-solid fa-bowl-food"></i> Browse Available Food
+        </a>
+        <a href="{{ url_for('er_diagram_view') }}" class="btn btn-outline" style="border-color: var(--primary); color: var(--primary);">
+            <i class="fa-solid fa-diagram-project"></i> View ER Relationship Mappings
+        </a>
+    </div>
+</div>
+
+<!-- Quick Statistics Strip -->
+<div class="grid-4" style="margin: 1.5rem 0 2rem;">
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="fa-solid fa-people-roof"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ ngos|length }}</div>
+            <div class="stat-label">Verified Partner NGOs</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="fa-solid fa-certificate"></i>
+        </div>
+        <div>
+            <div class="stat-value">100%</div>
+            <div class="stat-label">Government Licensed</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="fa-solid fa-warehouse"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ centers|length }}</div>
+            <div class="stat-label">Delivery & Triage Hubs</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i class="fa-solid fa-truck-ramp-box"></i>
+        </div>
+        <div>
+            <div class="stat-value">Active</div>
+            <div class="stat-label">Logistics Coordination</div>
+        </div>
+    </div>
+</div>
+
+<!-- Relationship Explanation Box -->
+<div class="card" style="background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%); border-left: 4px solid var(--accent-mint); margin-bottom: 2rem;">
+    <div style="display: flex; align-items: flex-start; gap: 1rem;">
+        <div style="font-size: 1.8rem; color: var(--primary); margin-top: 0.15rem;">
+            <i class="fa-solid fa-diagram-project"></i>
+        </div>
+        <div>
+            <h3 style="font-size: 1.05rem; color: var(--dark); margin-bottom: 0.25rem;">
+                ER Diagram Relationship Architecture: <code>&lt;DONATED BY&gt;</code> & <code>&lt;DELIVERS TO&gt;</code>
+            </h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.55;">
+                In the conceptual model, <strong>NGO / RECEIVER [1]</strong> claims surplus listings via <code>&lt;DONATED BY&gt; [N]</code> on <strong>DONATION</strong>. Each NGO additionally coordinates with a regional <strong>COLLECTION CENTER [1]</strong> via the <code>&lt;DELIVERS TO&gt; [N]</code> association, enabling insulated transport, triage, and diversion of excess perishables.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- NGO Cards Grid -->
+<div class="grid-3" style="margin-bottom: 2.5rem;">
+    {% for n in ngos %}
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid var(--primary);">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                    <span class="badge badge-available">
+                        <i class="fa-solid fa-shield-halved"></i> {{ n.NGO_Type }}
+                    </span>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); background: #F1F5F9; padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); font-weight: 600;">
+                        ID: #{{ n.NGO_ID }}
+                    </span>
+                </div>
+
+                <h3 style="font-size: 1.2rem; color: var(--dark); font-family: 'Outfit', sans-serif; margin-bottom: 0.4rem;">
+                    {{ n.NGO_Name }}
+                </h3>
+
+                <div style="font-size: 0.82rem; color: var(--primary); font-weight: 600; margin-bottom: 0.75rem;">
+                    <i class="fa-solid fa-id-card"></i> License: <code>{{ n.License_No }}</code>
+                </div>
+
+                <div style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;">
+                    <div style="display: flex; align-items: flex-start; gap: 0.4rem; margin-bottom: 0.35rem;">
+                        <i class="fa-solid fa-location-dot" style="color: var(--accent-orange); margin-top: 0.2rem;"></i>
+                        <span>{{ n.Address }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem;">
+                        <i class="fa-solid fa-phone" style="color: var(--primary);"></i>
+                        <span>{{ n.Contact_No }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem;">
+                        <i class="fa-solid fa-envelope" style="color: var(--accent-blue);"></i>
+                        <span>{{ n.Email }}</span>
+                    </div>
+                </div>
+
+                <!-- ER Diagram Relationship: DELIVERS TO Collection Center -->
+                <div style="background: #E8F5E9; border: 1px solid #C8E6C9; border-radius: var(--radius-sm); padding: 0.75rem; margin-bottom: 1rem;">
+                    <div style="font-size: 0.74rem; font-weight: 700; color: #166534; text-transform: uppercase; margin-bottom: 0.25rem;">
+                        <i class="fa-solid fa-truck-ramp-box"></i> &lt;DELIVERS TO&gt; Routing Center:
+                    </div>
+                    <div style="font-size: 0.88rem; font-weight: 600; color: var(--dark);">
+                        {{ n.Center_Name or 'Shivajinagar Central Food & Cold Storage Hub' }}
+                    </div>
+                    <div style="font-size: 0.76rem; color: var(--text-muted);">
+                        Type: {{ n.Delivers_To_Center_Type or 'Central Hub' }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Stats -->
+            <div style="border-top: 1px solid var(--border-color); padding-top: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Total Food Rescued</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary);">{{ n.Total_Rescued_Kg|round(1) }} kg</div>
+                </div>
+                {% if n.Website %}
+                    <a href="{{ n.Website }}" target="_blank" class="btn btn-sm btn-outline">
+                        Website <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate of Appreciation - {{ donation.Donor_Name }} | Smart Food Rescue</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1B4332;
+            --primary-dark: #081C15;
+            --gold: #D4AF37;
+            --gold-dark: #9D7B48;
+            --gold-light: #F7E7B4;
+            --cream: #FAF9F6;
+            --accent-green: #2D6A4F;
+            --border-gold: #C5A880;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: #E8ECE9;
+            color: #1F2937;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+
+        /* Congratulations Top Banner (shown immediately after donation or when ?new=1) */
+        .congrats-banner {
+            width: 100%;
+            max-width: 980px;
+            background: linear-gradient(135deg, #0f3d2e 0%, #1e5a44 100%);
+            color: #FFFFFF;
+            border-radius: 12px;
+            padding: 1.25rem 1.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 24px rgba(15, 61, 46, 0.25);
+            border-left: 6px solid #D4AF37;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            animation: fadeInDown 0.4s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .congrats-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .congrats-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: rgba(212, 175, 55, 0.2);
+            border: 2px solid #D4AF37;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #FFDF78;
+            flex-shrink: 0;
+        }
+
+        .congrats-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 0.25rem;
+        }
+
+        .congrats-desc {
+            font-size: 0.9rem;
+            color: #D8F3DC;
+            margin: 0;
+        }
+
+        .congrats-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        /* Top Action Toolbar */
+        .action-bar {
+            background: #FFFFFF;
+            border-radius: 9999px;
+            padding: 0.6rem 1.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.9rem;
+            z-index: 10;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.55rem 1.2rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%);
+            color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(27, 67, 50, 0.3);
+        }
+        .btn-primary:hover {
+            background: #081C15;
+            transform: translateY(-1px);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+            color: #081C15;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.35);
+        }
+        .btn-gold:hover {
+            background: #AA7C11;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: #F3F4F6;
+            color: #374151;
+            border: 1px solid #D1D5DB;
+        }
+        .btn-outline:hover {
+            background: #E5E7EB;
+        }
+
+        /* Certificate Outer Frame */
+        .certificate-container {
+            width: 100%;
+            max-width: 980px;
+            background: #FCFBF7;
+            padding: 1.5rem;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+            position: relative;
+            border: 1px solid #D1D5DB;
+            border-radius: 4px;
+        }
+
+        /* Elaborate Ornate Borders */
+        .cert-outer-border {
+            border: 4px solid var(--primary);
+            padding: 6px;
+            position: relative;
+            background: #FCFBF7;
+        }
+
+        .cert-inner-border {
+            border: 2px dashed #C5A880;
+            padding: 2.2rem 2.8rem;
+            position: relative;
+            background: radial-gradient(circle at center, #FFFFFF 55%, #FBF8EE 100%);
+            text-align: center;
+        }
+
+        /* Corner Decorative Filigree */
+        .corner-accent {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            border-color: #D4AF37;
+            border-style: solid;
+        }
+        .corner-tl { top: 8px; left: 8px; border-width: 3px 0 0 3px; }
+        .corner-tr { top: 8px; right: 8px; border-width: 3px 3px 0 0; }
+        .corner-bl { bottom: 8px; left: 8px; border-width: 0 0 3px 3px; }
+        .corner-br { bottom: 8px; right: 8px; border-width: 0 3px 3px 0; }
+
+        /* Certificate Watermark */
+        .cert-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.035;
+            font-size: 22rem;
+            color: var(--primary);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Header Elements */
+        .cert-header {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 1.25rem;
+        }
+
+        .cert-authority {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.82rem;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--accent-green);
+            margin-bottom: 0.25rem;
+        }
+
+        .cert-department {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.76rem;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: #64748B;
+            margin-bottom: 0.85rem;
+        }
+
+        .cert-emblem {
+            font-size: 2.8rem;
+            color: #D4AF37;
+            margin-bottom: 0.4rem;
+            filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.3));
+        }
+
+        .cert-title {
+            font-family: 'Cinzel', 'Georgia', serif;
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+            line-height: 1.15;
+            background: linear-gradient(135deg, #081C15 20%, #1B4332 50%, #9D7B48 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cert-subtitle {
+            font-style: italic;
+            font-size: 1.05rem;
+            color: #8C6D37;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Presentation Body */
+        .cert-body {
+            position: relative;
+            z-index: 1;
+            margin: 1.25rem 0;
+            line-height: 1.7;
+        }
+
+        .cert-awarded-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.92rem;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        .cert-recipient {
+            font-family: 'Cinzel', 'Georgia', serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            border-bottom: 2px solid #D4AF37;
+            display: inline-block;
+            padding: 0 2.5rem 0.4rem 2.5rem;
+            margin-bottom: 1.1rem;
+        }
+
+        .cert-desc {
+            font-size: 1.08rem;
+            color: #374151;
+            max-width: 800px;
+            margin: 0 auto 1.5rem auto;
+            line-height: 1.75;
+        }
+
+        .cert-highlight {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Environmental Impact Badge Grid */
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            max-width: 780px;
+            margin: 1.5rem auto;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .impact-card {
+            background: #F4F7F2;
+            border: 1px solid #DCE6D9;
+            border-radius: 10px;
+            padding: 0.95rem 0.85rem;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        }
+
+        .impact-val {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-top: 0.2rem;
+        }
+
+        .impact-lbl {
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #475569;
+            letter-spacing: 0.5px;
+        }
+
+        /* Metadata & Audit Row */
+        .cert-metadata-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #E2E8F0;
+            border-bottom: 1px solid #E2E8F0;
+            padding: 0.65rem 1rem;
+            margin: 1.5rem auto;
+            max-width: 800px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.82rem;
+            color: #4B5563;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 4px;
+        }
+
+        /* Signatures Section */
+        .cert-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 2.2rem;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sig-block {
+            text-align: center;
+            width: 220px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .sig-line {
+            height: 1px;
+            background: #64748B;
+            margin: 0.4rem 0;
+        }
+
+        .sig-name {
+            font-weight: 700;
+            font-size: 0.86rem;
+            color: #1E293B;
+        }
+
+        .sig-title {
+            font-size: 0.72rem;
+            color: #64748B;
+            line-height: 1.3;
+        }
+
+        .sig-handwritten {
+            font-family: 'Great Vibes', cursive;
+            font-size: 2.2rem;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: -0.25rem;
+        }
+
+        /* Official Gold Seal Stamp */
+        .seal-stamp {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 3px double #C5A880;
+            background: radial-gradient(circle, #FFFDF8 35%, #F7ECC8 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            color: #8C6D37;
+            text-align: center;
+            padding: 0.4rem;
+        }
+
+        .seal-inner-star {
+            font-size: 1.35rem;
+            color: #D4AF37;
+        }
+
+        .seal-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.54rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+            margin-top: 3px;
+        }
+
+        /* Print Media Styling for Clean A4 Landscape Export */
+        @media print {
+            body {
+                background: #FFFFFF !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .action-bar, .congrats-banner {
+                display: none !important;
+            }
+            .certificate-container {
+                box-shadow: none !important;
+                border: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            .cert-inner-border {
+                padding: 1.6rem 2rem !important;
+            }
+            .cert-title {
+                -webkit-text-fill-color: #081C15 !important;
+                color: #081C15 !important;
+            }
+            @page {
+                size: A4 landscape;
+                margin: 0.6cm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Congratulations Header (Visible when ?new=1 or newly donated) -->
+    {% if is_new or request.args.get('new') == '1' %}
+        <div class="congrats-banner">
+            <div class="congrats-left">
+                <div class="congrats-icon">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div>
+                    <div class="congrats-title">🎉 Thank You for Your Food Donation!</div>
+                    <p class="congrats-desc">
+                        Your surplus food listing is live in the municipal database. Below is your official <strong>Certificate of Appreciation</strong> acknowledging your civic generosity and environmental leadership!
+                    </p>
+                </div>
+            </div>
+            <div class="congrats-actions">
+                <button onclick="window.print()" class="btn btn-gold">
+                    <i class="fa-solid fa-print"></i> Print / Save PDF
+                </button>
+                <a href="{{ url_for('donor_dashboard') }}" class="btn btn-outline" style="background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.4);">
+                    <i class="fa-solid fa-gauge"></i> My Dashboard
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- On-Screen Action Controls -->
+    <div class="action-bar">
+        <a href="{{ url_for('donor_dashboard') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> Donor Dashboard
+        </a>
+        <a href="{{ url_for('donation_details', donation_id=donation.Donation_ID) }}" class="btn btn-outline">
+            <i class="fa-solid fa-eye"></i> Donation Details
+        </a>
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="fa-solid fa-print"></i> Print / Save Certificate (PDF)
+        </button>
+        <a href="{{ url_for('verify_certificate_lookup', cert_code=cert_id) }}" class="btn btn-outline" target="_blank">
+            <i class="fa-solid fa-shield-check" style="color: var(--primary);"></i> Live DBMS Verification
+        </a>
+    </div>
+
+    <!-- Official Certificate Body -->
+    <div class="certificate-container" id="certificateNode">
+        <div class="cert-outer-border">
+            <div class="cert-inner-border">
+                <!-- Corner Filigree Ornaments -->
+                <div class="corner-accent corner-tl"></div>
+                <div class="corner-accent corner-tr"></div>
+                <div class="corner-accent corner-bl"></div>
+                <div class="corner-accent corner-br"></div>
+
+                <!-- Watermark Logo -->
+                <div class="cert-watermark">
+                    <i class="fa-solid fa-seedling"></i>
+                </div>
+
+                <!-- Header -->
+                <div class="cert-header">
+                    <div class="cert-authority">Pune Municipal Corporation &bull; Civic Welfare Council</div>
+                    <div class="cert-department">Department of Food Waste Reduction & Civic Philanthropy</div>
+                    <div class="cert-emblem">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <h1 class="cert-title">Certificate of Appreciation</h1>
+                    <div class="cert-subtitle">Presented for Generous Food Donation, Civic Leadership & Zero-Waste Stewardship</div>
+                </div>
+
+                <!-- Body -->
+                <div class="cert-body">
+                    <div class="cert-awarded-text">This official certificate is proudly presented to</div>
+                    <div class="cert-recipient">{{ donation.Donor_Name }}</div>
+                    
+                    <p class="cert-desc">
+                        In grateful recognition and highest appreciation of your generous contribution of 
+                        <span class="cert-highlight">{{ donation.Quantity }} {{ donation.Unit }}</span> of wholesome 
+                        <span class="cert-highlight">{{ donation.Food_Type }}</span> ({{ donation.Food_Category }}). 
+                        Your dedication to fighting hunger directly provides immediate sustenance to vulnerable families through certified humanitarian partner 
+                        <span class="cert-highlight">{{ donation.NGO_Name or 'Pune Municipal Hunger Relief Trust' }}</span>, 
+                        diverting preventable organic waste from municipal landfills and championing a greener, more compassionate community.
+                    </p>
+
+                    <!-- Humanitarian & Environmental Impact Grid -->
+                    <div class="impact-grid">
+                        <div class="impact-card">
+                            <div class="impact-lbl"><i class="fa-solid fa-bowl-food" style="color: var(--accent-green);"></i> Wholesome Meals</div>
+                            <div class="impact-val">{{ meals_served }}</div>
+                            <div style="font-size: 0.72rem; color: #64748B;">Nourishing plates provided</div>
+                        </div>
+
+                        <div class="impact-card">
+                            <div class="impact-lbl"><i class="fa-solid fa-cloud-arrow-down" style="color: #0288D1;"></i> CO2e Diverted</div>
+                            <div class="impact-val">{{ co2_prevented }} kg</div>
+                            <div style="font-size: 0.72rem; color: #64748B;">Landfill methane avoided</div>
+                        </div>
+
+                        <div class="impact-card">
+                            <div class="impact-lbl"><i class="fa-solid fa-droplet" style="color: #2A9D8F;"></i> Water Conserved</div>
+                            <div class="impact-val">{{ water_saved }} L</div>
+                            <div style="font-size: 0.72rem; color: #64748B;">Embedded agricultural water</div>
+                        </div>
+                    </div>
+
+                    <!-- Metadata Audit Strip -->
+                    <div class="cert-metadata-bar">
+                        <div><strong>Certificate No:</strong> {{ cert_id }}</div>
+                        <div><strong>Donation Batch:</strong> #{{ donation.Donation_ID }}</div>
+                        <div><strong>Issue Date:</strong> {{ issue_date|datetime_format }}</div>
+                        <div><strong>Auth Digest:</strong> <code style="font-family: monospace; color: var(--primary);">SHA:{{ hash_digest }}</code></div>
+                    </div>
+                </div>
+
+                <!-- Signatures & Municipal Seal -->
+                <div class="cert-footer">
+                    <!-- Left Signatory -->
+                    <div class="sig-block">
+                        <div class="sig-handwritten">Rajeshwar P.</div>
+                        <div class="sig-line"></div>
+                        <div class="sig-name">Dr. Rajeshwar Patil, IAS</div>
+                        <div class="sig-title">Municipal Commissioner<br>Pune Municipal Corporation</div>
+                    </div>
+
+                    <!-- Official Embossed Seal -->
+                    <div class="seal-stamp">
+                        <i class="fa-solid fa-shield-halved seal-inner-star"></i>
+                        <div class="seal-text">
+                            PUNE MUNICIPAL<br>CORPORATION<br>
+                            ★ APPRECIATION ★
+                        </div>
+                    </div>
+
+                    <!-- Right Signatory -->
+                    <div class="sig-block">
+                        <div class="sig-handwritten">Suniti D.</div>
+                        <div class="sig-line"></div>
+                        <div class="sig-name">Ms. Suniti Deshpande</div>
+                        <div class="sig-title">Chief Sustainability Officer<br>Smart Food Rescue Mission</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

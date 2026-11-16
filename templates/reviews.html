@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Reviews & Community Trust - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <h1 style="font-size: 1.8rem; color: var(--dark);">Community Reviews & Food Quality Audit</h1>
+        <p style="color: var(--text-muted);">
+            Transparent trust and hygiene evaluations submitted by partner NGOs and community beneficiaries.
+        </p>
+    </div>
+</div>
+
+<!-- Average Trust Score Banner -->
+<div class="card" style="margin-top: 1.5rem; background: #FFFFFF;">
+    <div style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+        <div style="text-align: center; padding: 1rem 2rem; border-right: 1px solid var(--border-color);">
+            <div style="font-size: 3rem; font-weight: 800; color: #F59E0B; line-height: 1;">
+                {{ avg_rating.avg_score or '4.8' }}
+            </div>
+            <div style="color: #F59E0B; font-size: 1.3rem; margin: 0.25rem 0;">★★★★★</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Based on {{ avg_rating.count or '4' }} verified audits</div>
+        </div>
+
+        <div style="flex: 1;">
+            <h3 style="font-size: 1.15rem; color: var(--dark); margin-bottom: 0.4rem;">Quality, Freshness & Safety Assurance</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">
+                Every completed donation is inspected and verified upon delivery. Ratings validate food temperature, freshness, hygiene compliance, and nutritional value.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Reviews Stream -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-comments" style="color: var(--primary);"></i> Verified Feedback Stream
+        </div>
+    </div>
+
+    {% if reviews %}
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            {% for r in reviews %}
+                <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                        <div>
+                            <strong style="font-size: 1.05rem; color: var(--dark);">{{ r.Reviewer_Name }}</strong>
+                            <span class="badge badge-available" style="font-size: 0.75rem; margin-left: 0.5rem;">
+                                <i class="fa-solid fa-circle-check"></i> {{ r.Reviewer_Type }}
+                            </span>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+                                Donated by: <strong>{{ r.Donor_Name }}</strong> &bull; Batch: <em>{{ r.Food_Type }} ({{ r.Quantity }} {{ r.Unit }})</em>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="color: #F59E0B; font-size: 1.2rem; font-weight: 700;">
+                                {% for i in range(r.Rating) %}★{% endfor %}{% for i in range(5 - r.Rating) %}☆{% endfor %}
+                            </div>
+                            <small style="color: var(--text-muted);">{{ r.Review_Date|date_format }}</small>
+                        </div>
+                    </div>
+
+                    <p style="font-size: 0.95rem; color: var(--dark); line-height: 1.5; margin-top: 0.5rem; background: #FFFFFF; padding: 0.85rem; border-radius: var(--radius-sm); border-left: 3px solid var(--badge-green);">
+                        "{{ r.Comment }}"
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No reviews recorded yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

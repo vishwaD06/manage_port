@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Logistics & Pickup Tracking - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <h1 style="font-size: 1.8rem; color: var(--dark);">Logistics & Pickup Management</h1>
+        <p style="color: var(--text-muted);">
+            Real-time tracking of food collection dispatches, driver assignments, and transit fulfillment.
+        </p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 1.5rem;">
+    {% if pickups %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Pickup ID</th>
+                        <th>Food Consignment</th>
+                        <th>Donor & Pickup Point</th>
+                        <th>Beneficiary NGO</th>
+                        <th>Scheduled Time</th>
+                        <th>Driver & Vehicle</th>
+                        <th>Routing Hub</th>
+                        <th>Status</th>
+                        <th>Update Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pickups %}
+                        <tr>
+                            <td>#{{ p.Pickup_ID }}</td>
+                            <td>
+                                <strong>{{ p.Food_Type }}</strong><br>
+                                <small style="color: var(--primary); font-weight: 600;">{{ p.Quantity }} {{ p.Unit }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ p.Donor_Name }}</strong><br>
+                                <small style="color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> {{ p.Pickup_Address }}</small>
+                            </td>
+                            <td>
+                                {% if p.NGO_Name %}
+                                    <strong>{{ p.NGO_Name }}</strong><br>
+                                    <small style="color: var(--text-muted);"><i class="fa-solid fa-phone"></i> {{ p.NGO_Contact }}</small>
+                                {% else %}
+                                    <span style="color: var(--text-muted);">Direct Dispatch</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ p.Pickup_Time|datetime_format }}</strong>
+                            </td>
+                            <td>
+                                <strong>{{ p.Driver_Name }}</strong><br>
+                                <span class="badge badge-initiated" style="font-size: 0.75rem;"><i class="fa-solid fa-truck"></i> {{ p.Vehicle_No }}</span>
+                            </td>
+                            <td>
+                                <small>{{ p.Center_Name or 'Direct Destination' }}</small>
+                            </td>
+                            <td>
+                                {% if p.Status == 'Completed' %}
+                                    <span class="badge badge-completed">Completed</span>
+                                {% elif p.Status == 'In Transit' %}
+                                    <span class="badge badge-scheduled"><i class="fa-solid fa-route"></i> In Transit</span>
+                                {% elif p.Status == 'Scheduled' %}
+                                    <span class="badge badge-pending">Scheduled</span>
+                                {% else %}
+                                    <span class="badge badge-expired">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if p.Status != 'Completed' and p.Status != 'Cancelled' %}
+                                    <form action="{{ url_for('update_pickup_status', pickup_id=p.Pickup_ID) }}" method="POST" style="display: flex; gap: 0.25rem;">
+                                        {% if p.Status == 'Scheduled' %}
+                                            <input type="hidden" name="status" value="In Transit">
+                                            <button type="submit" class="btn btn-sm btn-outline" title="Dispatch Driver">
+                                                <i class="fa-solid fa-truck-moving"></i> Dispatch
+                                            </button>
+                                        {% elif p.Status == 'In Transit' %}
+                                            <input type="hidden" name="status" value="Completed">
+                                            <button type="submit" class="btn btn-sm btn-success" title="Mark as Delivered">
+                                                <i class="fa-solid fa-check"></i> Deliver
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-size: 0.85rem;"><i class="fa-solid fa-circle-check" style="color: var(--badge-green);"></i> Fulfilled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 3rem; color: #CBD5E1; margin-bottom: 0.75rem;"><i class="fa-solid fa-truck-ramp-box"></i></div>
+            <h3>No Scheduled Pickups Found</h3>
+            <p style="margin-top: 0.35rem;">Pickups are scheduled automatically when NGOs claim surplus food.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

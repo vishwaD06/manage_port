@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+
+{% block title %}Donor Dashboard - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <h1 style="font-size: 1.8rem; color: var(--dark);">Donor Dashboard</h1>
+        <p style="color: var(--text-muted);">Manage surplus food listings, dispatch schedules, and beneficiary feedback.</p>
+    </div>
+    <div>
+        <button class="btn btn-accent" onclick="openModal('addDonationModal')">
+            <i class="fa-solid fa-plus-circle"></i> Donate Surplus Food
+        </button>
+    </div>
+</div>
+
+<!-- Quick Metric Cards -->
+<div class="grid-4" style="margin: 1.5rem 0 1rem;">
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="fa-solid fa-scale-balanced"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ stats.total_kg|round(1) }} kg</div>
+            <div class="stat-label">Total Rescued Food</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="fa-solid fa-box-open"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ stats.total_donations }}</div>
+            <div class="stat-label">Total Listings</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="fa-solid fa-clock"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ stats.available_count }}</div>
+            <div class="stat-label">Active / Available</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ stats.completed_count }}</div>
+            <div class="stat-label">Completed Pickups</div>
+        </div>
+    </div>
+</div>
+
+<!-- Personal Contribution in Nature Metric Strip -->
+<div style="background: #F8FDF9; border: 1px solid #D8F3DC; border-radius: var(--radius-md); padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <i class="fa-solid fa-leaf" style="color: #2E7D32; font-size: 1.25rem;"></i>
+        <div>
+            <div style="font-weight: 700; color: #166534; font-size: 0.88rem;">Your Verified Contribution to Nature & Society</div>
+            <div style="color: var(--text-muted); font-size: 0.8rem;">Every kilogram you donate directly saves fresh water and halts municipal landfill methane.</div>
+        </div>
+    </div>
+    <div style="display: flex; gap: 1.5rem; align-items: center;">
+        <div style="text-align: center;">
+            <div style="font-weight: 800; color: #0288D1; font-size: 1.1rem;">{{ donor_eco.meals_served }}</div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted);">Meals Served</div>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-weight: 800; color: #2E7D32; font-size: 1.1rem;">{{ donor_eco.co2_avoided }} kg</div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted);">CO₂e Prevented</div>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-weight: 800; color: #059669; font-size: 1.1rem;">{{ donor_eco.water_saved }} L</div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted);">Water Saved</div>
+        </div>
+        <a href="{{ url_for('nature_contribution') }}" class="btn btn-outline btn-sm" style="font-size: 0.78rem; padding: 0.3rem 0.65rem;">
+            <i class="fa-solid fa-calculator"></i> Eco Impact Guide
+        </a>
+    </div>
+</div>
+
+<!-- Donor Appreciation & Certificate Recognition Banner -->
+<div style="background: linear-gradient(135deg, #0F2D1F 0%, #1B4332 50%, #2D6A4F 100%); color: #FFFFFF; border-radius: var(--radius-md); padding: 1.25rem 1.6rem; margin-bottom: 2rem; box-shadow: var(--shadow-md); border-left: 5px solid #D4AF37; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(212, 175, 55, 0.2); border: 2px solid #D4AF37; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #FFDF78; flex-shrink: 0;">
+            <i class="fa-solid fa-award"></i>
+        </div>
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: #D4AF37; font-weight: 700; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 1px;">
+                Civic Recognition Program
+            </div>
+            <h3 style="color: #FFFFFF; margin: 0.25rem 0 0.2rem 0; font-size: 1.25rem;">Official Certificates of Appreciation</h3>
+            <p style="margin: 0; font-size: 0.9rem; color: #D8F3DC; max-width: 650px;">
+                Every food donation you publish earns a verified, cryptographically signed <strong>Certificate of Appreciation</strong> from the Pune Municipal Corporation acknowledging your civic generosity and environmental impact.
+            </p>
+        </div>
+    </div>
+    <div style="display: flex; gap: 0.75rem; align-items: center;">
+        {% if donations %}
+            <a href="{{ url_for('donation_certificate', donation_id=donations[0].Donation_ID) }}" class="btn" style="background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%); color: #081C15; font-weight: 700; box-shadow: 0 4px 10px rgba(212,175,55,0.3);" target="_blank">
+                <i class="fa-solid fa-award"></i> Latest Certificate
+            </a>
+        {% endif %}
+        <button class="btn btn-accent" onclick="openModal('addDonationModal')">
+            <i class="fa-solid fa-plus-circle"></i> Donate Food
+        </button>
+    </div>
+</div>
+
+<!-- My Food Donations Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Your Donation Listings History
+        </div>
+    </div>
+
+    {% if donations %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Food Details</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Listed Time</th>
+                        <th>Expiry Warning</th>
+                        <th>Status</th>
+                        <th>Claimed By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in donations %}
+                        <tr>
+                            <td>#{{ d.Donation_ID }}</td>
+                            <td>
+                                <strong>{{ d.Food_Type }}</strong><br>
+                                <small style="color: var(--text-muted);"><i class="fa-solid fa-box"></i> {{ d.Packaging_Type }}</small>
+                                <div style="margin-top: 0.3rem;">
+                                    {% if d.Safety_Status == 'Verified Safe' %}
+                                        <span class="badge" style="background: #DCFCE7; color: #166534; font-size: 0.72rem; padding: 0.15rem 0.45rem;">
+                                            <i class="fa-solid fa-shield-check"></i> Safe ({{ d.Temperature_Celsius or 65 }}°C)
+                                        </span>
+                                    {% elif d.Safety_Status == 'Caution Required' %}
+                                        <span class="badge" style="background: #FEF3C7; color: #B45309; font-size: 0.72rem; padding: 0.15rem 0.45rem;">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> Caution ({{ d.Temperature_Celsius or 45 }}°C)
+                                        </span>
+                                    {% elif d.Safety_Status == 'Diverted to Waste' %}
+                                        <span class="badge" style="background: #FEE2E2; color: #991B1B; font-size: 0.72rem; padding: 0.15rem 0.45rem;">
+                                            <i class="fa-solid fa-recycle"></i> Diverted
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-pending" style="font-size: 0.72rem; padding: 0.15rem 0.45rem;">
+                                            Audit Pending
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td><span class="badge badge-initiated">{{ d.Food_Category }}</span></td>
+                            <td><strong>{{ d.Quantity }} {{ d.Unit }}</strong></td>
+                            <td>{{ d.Donation_Time|datetime_format }}</td>
+                            <td>
+                                {% if d.Status == 'Available' %}
+                                    {% if d.Hours_Until_Expiry <= 6 %}
+                                        <span class="urgent-pill"><i class="fa-solid fa-triangle-exclamation"></i> {{ d.Hours_Until_Expiry }}h left</span>
+                                    {% else %}
+                                        <span style="color: var(--text-muted);"><i class="fa-regular fa-clock"></i> {{ d.Hours_Until_Expiry }}h left</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: var(--text-muted);">{{ d.Expiry_Date|date_format }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if d.Status == 'Available' %}
+                                    <span class="badge badge-available">{{ d.Status }}</span>
+                                {% elif d.Status in ['Scheduled', 'Claimed'] %}
+                                    <span class="badge badge-scheduled">{{ d.Status }}</span>
+                                {% elif d.Status == 'Completed' %}
+                                    <span class="badge badge-completed">{{ d.Status }}</span>
+                                {% else %}
+                                    <span class="badge badge-expired">{{ d.Status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if d.NGO_Name %}
+                                    <strong>{{ d.NGO_Name }}</strong><br>
+                                    <small style="color: var(--text-muted);"><i class="fa-solid fa-phone"></i> {{ d.NGO_Contact }}</small>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-style: italic;">Awaiting NGO Claim</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                                    <a href="{{ url_for('donation_details', donation_id=d.Donation_ID) }}" class="btn btn-sm btn-outline" title="View Full Details">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('donation_certificate', donation_id=d.Donation_ID) }}" class="btn btn-sm" style="background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%); color: #081C15; font-weight: 700; border: none; box-shadow: 0 2px 6px rgba(184,134,11,0.25); white-space: nowrap;" title="Official Certificate of Appreciation" target="_blank">
+                                        <i class="fa-solid fa-award"></i> Certificate
+                                    </a>
+                                    {% if d.Status in ['Available', 'Claimed'] %}
+                                        <form action="{{ url_for('cancel_donation', donation_id=d.Donation_ID) }}" method="POST" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-danger" data-confirm="Are you sure you want to cancel this donation listing?" title="Cancel Donation">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 3rem; color: #CBD5E1; margin-bottom: 0.75rem;"><i class="fa-solid fa-bowl-food"></i></div>
+            <h3>No Donations Listed Yet</h3>
+            <p style="margin-top: 0.35rem;">Help fight hunger and reduce municipal waste by posting surplus food today.</p>
+            <button class="btn btn-accent" style="margin-top: 1rem;" onclick="openModal('addDonationModal')">
+                <i class="fa-solid fa-plus-circle"></i> List First Surplus Food Batch
+            </button>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal: Add New Surplus Food Listing -->
+<div id="addDonationModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-hand-holding-heart"></i> Add Surplus Food Donation</h3>
+            <button class="modal-close" onclick="closeModal('addDonationModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('new_donation') }}" method="POST">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Food Item Title & Details</label>
+                    <input type="text" name="food_type" class="form-control" placeholder="e.g. Cooked Vegetable Biryani & Raita (Serves ~80)" required>
+                </div>
+
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label class="form-label">Food Category & Classification (Diagram: Veg/Non-Veg)</label>
+                        <select name="food_category" class="form-control" required>
+                            <option value="Cooked Food (Veg)" selected>Cooked Food (Veg)</option>
+                            <option value="Cooked Food (Non-Veg)">Cooked Food (Non-Veg)</option>
+                            <option value="Raw Groceries">Raw Groceries (Veg)</option>
+                            <option value="Bakery">Bakery & Breads (Veg)</option>
+                            <option value="Fruits & Vegetables">Fruits & Vegetables (Veg)</option>
+                            <option value="Packaged/Canned">Packaged / Canned Goods</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" step="0.5" name="quantity" class="form-control" placeholder="e.g. 45" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Unit</label>
+                        <select name="unit" class="form-control">
+                            <option value="kg" selected>kg</option>
+                            <option value="servings">servings</option>
+                            <option value="boxes">boxes</option>
+                            <option value="packs">packs</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Packaging Type</label>
+                    <input type="text" name="packaging_type" class="form-control" placeholder="e.g. Sealed Food-Grade Containers, Insulated Boxes" required>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Prepared / Packed On</label>
+                        <input type="datetime-local" name="prepared_on" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Best Before / Expiry Time</label>
+                        <input type="datetime-local" name="expiry_date" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Current Holding Temperature (°C)</label>
+                        <input type="number" step="0.5" name="temperature" class="form-control" value="65.0" placeholder="e.g. 65.0 for hot, 4.0 for cold" required>
+                        <small style="color: var(--text-muted); font-size: 0.75rem;">FSSAI Safe Zone: &ge;60°C hot or &le;5°C chilled</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Quality & Sensory Verification Notes</label>
+                        <input type="text" name="safety_notes" class="form-control" value="Freshly prepared, organoleptic smell/taste intact, sealed in food-grade packaging." placeholder="Sensory inspection notes" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Pickup Address</label>
+                    <textarea name="pickup_address" class="form-control" rows="2" placeholder="Accurate kitchen / dock pickup address and gate instructions" required>{{ session.get('address', '') }}</textarea>
+                </div>
+
+                <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-top: 0.75rem; display: flex; align-items: center; gap: 0.75rem; color: #166534; font-size: 0.88rem;">
+                    <i class="fa-solid fa-award" style="font-size: 1.5rem; color: #D4AF37; flex-shrink: 0;"></i>
+                    <div>
+                        <strong>Instant Certificate of Appreciation:</strong> An official verified certificate acknowledging your contribution will be generated and issued to you immediately upon publishing this donation!
+                    </div>
+                </div>
+
+                <div style="margin-top: 0.75rem; display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.82rem; color: var(--text-muted);">
+                    <input type="checkbox" id="fssai_pledge" name="fssai_pledge" checked required style="margin-top: 3px;">
+                    <label for="fssai_pledge">
+                        I hereby declare that this food has been prepared hygienically, packed in non-toxic food-grade containers, and maintained within safe temperature limits in compliance with FSSAI Surplus Food Regulations (2019).
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('addDonationModal')">Cancel</button>
+                <button type="submit" class="btn btn-accent"><i class="fa-solid fa-paper-plane"></i> Publish Donation</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

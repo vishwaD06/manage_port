@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div style="max-width: 620px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header" style="justify-content: center; flex-direction: column; text-align: center;">
+            <div style="font-size: 2.2rem; color: var(--primary); margin-bottom: 0.5rem;">
+                <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <h2 style="font-size: 1.5rem; color: var(--dark);">Create Your Account</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Join as a Food Donor, Certified NGO/Receiver, or Bio-Recycler</p>
+        </div>
+
+        <form action="{{ url_for('register') }}" method="POST">
+            <!-- Account Type Selection -->
+            <div class="form-group">
+                <label for="register-user-type" class="form-label">I am joining as a:</label>
+                <select id="register-user-type" name="user_type" class="form-control" style="font-weight: 600; background-color: #F8FAFC;">
+                    <option value="Donor" selected>Food Donor (Restaurant, Hotel, Caterer, College Mess, Supermarket)</option>
+                    <option value="NGO/Receiver">NGO / Food Bank / Shelter (Certified Food Beneficiary)</option>
+                    <option value="Recycler">Recycler / Composter / Biogas Plant Operator</option>
+                </select>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="name" class="form-label">Full Name / Contact Person</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="e.g. Ramesh Patel" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" class="form-control" placeholder="e.g. +91 98765 43210" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="name@domain.com" required>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="At least 6 characters" minlength="6" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat password" minlength="6" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="address" class="form-label">Address / Operating Location</label>
+                <textarea id="address" name="address" class="form-control" rows="2" placeholder="Full street address, area, and city" required></textarea>
+            </div>
+
+            <!-- Specific NGO/Receiver Verification Fields -->
+            <div id="ngo-specific-fields" style="display: none; background: #E8F5E9; border: 1px solid #C7E9C0; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
+                <h4 style="color: var(--primary); font-size: 0.95rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fa-solid fa-certificate"></i> Certified NGO / Receiver Profile Information
+                </h4>
+                
+                <div class="form-group">
+                    <label class="form-label">Organization Name</label>
+                    <input type="text" name="ngo_name" class="form-control" placeholder="e.g. Annapurna Hunger Relief Foundation">
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">License / Registration Number</label>
+                        <input type="text" name="license_no" class="form-control" placeholder="e.g. NGO-DL-2023-9901">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Organization Type (Diagram: NGO / Charity / Shelter)</label>
+                        <select name="ngo_type" class="form-control">
+                            <option value="NGO" selected>NGO (Non-Governmental Organization)</option>
+                            <option value="Charity">Charity Foundation</option>
+                            <option value="Shelter">Shelter & Care Home</option>
+                            <option value="Food Bank">Food Bank / Relief Pantry</option>
+                            <option value="Community Kitchen">Community Kitchen</option>
+                            <option value="Homeless Shelter">Homeless Shelter</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Official Website URL (Optional)</label>
+                    <input type="url" name="website" class="form-control" placeholder="https://organization.ngo">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <i class="fa-solid fa-check"></i> Complete Registration
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+            Already registered? 
+            <a href="{{ url_for('login') }}" style="color: var(--primary); font-weight: 600; text-decoration: none;">Log In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

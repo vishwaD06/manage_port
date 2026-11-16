@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Smart Food Waste Reduction & Donation Management System{% endblock %}</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js for DBMS Dashboard Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Top Sticky Navigation Bar -->
+    <header class="navbar-wrapper">
+        <nav class="navbar" id="mainNavbar">
+            <div class="nav-container">
+                <!-- Brand Logo & Tag -->
+                <a href="{{ url_for('index') }}" class="nav-brand" title="SmartFood Rescue Home">
+                    <div class="nav-logo-icon">
+                        <i class="fa-solid fa-seedling"></i>
+                    </div>
+                    <div class="nav-brand-text">
+                        <span class="brand-name">SmartFood<span class="brand-accent">Rescue</span></span>
+                        <span class="brand-badge"><span class="pulse-dot"></span> DBMS EcoPortal</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Navigation Menu Links -->
+                <div class="nav-menu-desktop">
+                    <ul class="nav-links">
+                        <!-- Home -->
+                        <li>
+                            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                                <i class="fa-solid fa-house"></i>
+                                <span>Home</span>
+                            </a>
+                        </li>
+
+                        <!-- Food Listings -->
+                        <li>
+                            <a href="{{ url_for('donations_list') }}" class="nav-link {% if request.endpoint in ['donations_list', 'donation_details'] %}active{% endif %}">
+                                <i class="fa-solid fa-bowl-food"></i>
+                                <span>Food Listings</span>
+                            </a>
+                        </li>
+
+                        <!-- Collection Centers / Pune Map -->
+                        <li>
+                            <a href="{{ url_for('collection_centers_list') }}" class="nav-link {% if request.endpoint == 'collection_centers_list' %}active{% endif %}">
+                                <i class="fa-solid fa-warehouse"></i>
+                                <span>Hubs & Centers</span>
+                            </a>
+                        </li>
+
+                        <!-- Partner NGOs (Entity: NGO / RECEIVER) -->
+                        <li>
+                            <a href="{{ url_for('ngos_list') }}" class="nav-link {% if request.endpoint == 'ngos_list' %}active{% endif %}">
+                                <i class="fa-solid fa-people-roof"></i>
+                                <span>Partner NGOs</span>
+                            </a>
+                        </li>
+
+                        <!-- Contribution in Nature -->
+                        <li>
+                            <a href="{{ url_for('nature_contribution') }}" class="nav-link {% if request.endpoint == 'nature_contribution' %}active{% endif %}" title="Contribution in Nature: How Food Rescue Heals the Planet">
+                                <i class="fa-solid fa-leaf" style="color: #74C69D;"></i>
+                                <span>Nature Impact</span>
+                            </a>
+                        </li>
+
+                        <!-- Operations Dropdown (For Logged In Users) -->
+                        {% if session.get('user_id') %}
+                            <li class="nav-dropdown" id="navOpsDropdown">
+                                <button type="button" class="nav-link dropdown-toggle {% if request.endpoint in ['pickups_list', 'waste_items_list', 'processes_list'] %}active{% endif %}" aria-expanded="false" id="opsDropdownBtn">
+                                    <i class="fa-solid fa-sliders"></i>
+                                    <span>Operations</span>
+                                    <i class="fa-solid fa-chevron-down caret"></i>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <div class="dropdown-header">Operations & Logistics</div>
+                                    <a href="{{ url_for('pickups_list') }}" class="dropdown-item {% if request.endpoint == 'pickups_list' %}active{% endif %}">
+                                        <div class="dropdown-icon icon-blue"><i class="fa-solid fa-truck-fast"></i></div>
+                                        <div class="dropdown-text">
+                                            <span class="title">Pickups & Logistics</span>
+                                            <span class="desc">Driver dispatch, status tracking & triage</span>
+                                        </div>
+                                    </a>
+                                    {% if session.get('user_type') in ['Admin', 'Recycler'] %}
+                                        <a href="{{ url_for('waste_items_list') }}" class="dropdown-item {% if request.endpoint == 'waste_items_list' %}active{% endif %}">
+                                            <div class="dropdown-icon icon-amber"><i class="fa-solid fa-trash-can"></i></div>
+                                            <div class="dropdown-text">
+                                                <span class="title">Waste Registry</span>
+                                                <span class="desc">Inedible food scraps, spoiled lots & logging</span>
+                                            </div>
+                                        </a>
+                                        <a href="{{ url_for('processes_list') }}" class="dropdown-item {% if request.endpoint == 'processes_list' %}active{% endif %}">
+                                            <div class="dropdown-icon icon-green"><i class="fa-solid fa-recycle"></i></div>
+                                            <div class="dropdown-text">
+                                                <span class="title">Recycling Lines</span>
+                                                <span class="desc">Composting, biogas generation & bio-fuel</span>
+                                            </div>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endif %}
+
+                        <!-- Explore & Insights Dropdown (Available to All) -->
+                        <li class="nav-dropdown" id="navExploreDropdown">
+                            <button type="button" class="nav-link dropdown-toggle {% if request.endpoint in ['reports_page', 'reviews_list', 'verify_certificate', 'viva_queries', 'nature_contribution'] %}active{% endif %}" aria-expanded="false" id="exploreDropdownBtn">
+                                <i class="fa-solid fa-compass"></i>
+                                <span>Explore</span>
+                                <i class="fa-solid fa-chevron-down caret"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-wide">
+                                <div class="dropdown-header">Analytics & Community</div>
+                                <a href="{{ url_for('nature_contribution') }}" class="dropdown-item {% if request.endpoint == 'nature_contribution' %}active{% endif %}">
+                                    <div class="dropdown-icon icon-green"><i class="fa-solid fa-leaf"></i></div>
+                                    <div class="dropdown-text">
+                                        <span class="title">Contribution in Nature</span>
+                                        <span class="desc">Planetary impact, methane reduction & bio-energy</span>
+                                    </div>
+                                </a>
+                                <a href="{{ url_for('reports_page') }}" class="dropdown-item {% if request.endpoint == 'reports_page' %}active{% endif %}">
+                                    <div class="dropdown-icon icon-purple"><i class="fa-solid fa-chart-pie"></i></div>
+                                    <div class="dropdown-text">
+                                        <span class="title">Live Analytics & Reports</span>
+                                        <span class="desc">SQL aggregate KPI stats, charts & trends</span>
+                                    </div>
+                                </a>
+                                <a href="{{ url_for('reviews_list') }}" class="dropdown-item {% if request.endpoint == 'reviews_list' %}active{% endif %}">
+                                    <div class="dropdown-icon icon-amber"><i class="fa-solid fa-star"></i></div>
+                                    <div class="dropdown-text">
+                                        <span class="title">Reviews & Feedback</span>
+                                        <span class="desc">Fulfillment scores, donor trust & comments</span>
+                                    </div>
+                                </a>
+                                <a href="{{ url_for('verify_certificate') }}" class="dropdown-item {% if request.endpoint == 'verify_certificate' %}active{% endif %}">
+                                    <div class="dropdown-icon icon-green"><i class="fa-solid fa-certificate"></i></div>
+                                    <div class="dropdown-text">
+                                        <span class="title">Verify Certificate</span>
+                                        <span class="desc">Authentic donation & eco recycling verification</span>
+                                    </div>
+                                </a>
+                                <a href="{{ url_for('er_diagram_view') }}" class="dropdown-item {% if request.endpoint == 'er_diagram_view' %}active{% endif %}">
+                                    <div class="dropdown-icon icon-blue"><i class="fa-solid fa-diagram-project"></i></div>
+                                    <div class="dropdown-text">
+                                        <span class="title">ER Diagram & Schema</span>
+                                        <span class="desc">Chen-notation conceptual model & 3NF mapping</span>
+                                    </div>
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="{{ url_for('viva_queries') }}" class="dropdown-item dropdown-item-highlight {% if request.endpoint == 'viva_queries' %}active{% endif %}">
+                                    <div class="dropdown-icon icon-primary"><i class="fa-solid fa-database"></i></div>
+                                    <div class="dropdown-text">
+                                        <span class="title">DBMS Viva Console <span class="tag-sql">16 Queries</span></span>
+                                        <span class="desc">Interactive relational schema query workbench</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </li>
+
+                        <!-- Dashboard Direct Tab (If Logged In) -->
+                        {% if session.get('user_id') %}
+                            <li>
+                                <a href="{{ url_for('dashboard') }}" class="nav-link nav-link-dashboard {% if 'dashboard' in request.endpoint %}active{% endif %}">
+                                    <i class="fa-solid fa-gauge-high"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <!-- Right-side Actions & User Profile -->
+                <div class="nav-actions">
+                    {% if session.get('user_id') %}
+                        <!-- Quick Role CTA -->
+                        {% if session.get('user_type') == 'Donor' %}
+                            <a href="{{ url_for('donor_dashboard') }}" class="btn-quick-cta donor-cta" title="Create New Food Donation">
+                                <i class="fa-solid fa-plus-circle"></i>
+                                <span class="cta-label">Donate Food</span>
+                            </a>
+                        {% elif session.get('user_type') == 'NGO/Receiver' %}
+                            <a href="{{ url_for('donations_list') }}" class="btn-quick-cta ngo-cta" title="Browse and Claim Available Food">
+                                <i class="fa-solid fa-handshake-angle"></i>
+                                <span class="cta-label">Claim Food</span>
+                            </a>
+                        {% elif session.get('user_type') == 'Recycler' %}
+                            <a href="{{ url_for('processes_list') }}" class="btn-quick-cta recycler-cta" title="Manage Recycling Processes">
+                                <i class="fa-solid fa-recycle"></i>
+                                <span class="cta-label">Processes</span>
+                            </a>
+                        {% elif session.get('user_type') == 'Admin' %}
+                            <a href="{{ url_for('admin_dashboard') }}" class="btn-quick-cta admin-cta" title="System Administration">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span class="cta-label">Admin Hub</span>
+                            </a>
+                        {% endif %}
+
+                        <!-- Modern User Profile Menu -->
+                        <div class="nav-user-dropdown" id="navUserDropdown">
+                            <button type="button" class="nav-user-trigger" aria-expanded="false" id="userMenuBtn">
+                                <div class="user-avatar-circle">
+                                    {% if session.get('user_type') == 'Donor' %}
+                                        <i class="fa-solid fa-utensils"></i>
+                                    {% elif session.get('user_type') == 'NGO/Receiver' %}
+                                        <i class="fa-solid fa-hand-holding-heart"></i>
+                                    {% elif session.get('user_type') == 'Recycler' %}
+                                        <i class="fa-solid fa-recycle"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-user-shield"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="user-trigger-info">
+                                    <span class="user-trigger-name">{{ session.get('name', 'User').split(' ')[0] }}</span>
+                                    <span class="user-trigger-role">{{ session.get('user_type') }}</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-down caret-user"></i>
+                            </button>
+
+                            <!-- Profile Flyout Card -->
+                            <div class="user-flyout-card" id="userFlyoutCard">
+                                <div class="flyout-header">
+                                    <div class="flyout-avatar">
+                                        <i class="fa-solid fa-circle-user"></i>
+                                    </div>
+                                    <div class="flyout-meta">
+                                        <div class="flyout-name">{{ session.get('name') }}</div>
+                                        <div class="flyout-email">{{ session.get('email') }}</div>
+                                        <span class="flyout-role-badge role-badge-{{ session.get('user_type', '').lower().replace('/', '-').replace(' ', '-') }}">
+                                            <i class="fa-solid fa-id-badge"></i> {{ session.get('user_type') }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flyout-divider"></div>
+                                <div class="flyout-body">
+                                    <a href="{{ url_for('dashboard') }}" class="flyout-link">
+                                        <i class="fa-solid fa-gauge-high"></i>
+                                        <span>My Dashboard</span>
+                                    </a>
+                                    <a href="{{ url_for('pickups_list') }}" class="flyout-link">
+                                        <i class="fa-solid fa-truck-ramp-box"></i>
+                                        <span>Pickups & Deliveries</span>
+                                    </a>
+                                    <a href="{{ url_for('reports_page') }}" class="flyout-link">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                        <span>Analytics & Reports</span>
+                                    </a>
+                                    <a href="{{ url_for('verify_certificate') }}" class="flyout-link">
+                                        <i class="fa-solid fa-certificate"></i>
+                                        <span>Verify Certificate</span>
+                                    </a>
+                                    <a href="{{ url_for('viva_queries') }}" class="flyout-link">
+                                        <i class="fa-solid fa-database"></i>
+                                        <span>DBMS Viva Console</span>
+                                    </a>
+                                </div>
+                                <div class="flyout-divider"></div>
+                                <div class="flyout-footer">
+                                    <a href="{{ url_for('logout') }}" class="flyout-logout-btn">
+                                        <i class="fa-solid fa-right-from-bracket"></i>
+                                        <span>Sign Out</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <!-- Guest Navigation Buttons -->
+                        <a href="{{ url_for('viva_queries') }}" class="nav-pill-sql" title="Direct access to DBMS examination queries">
+                            <i class="fa-solid fa-code"></i>
+                            <span>SQL Console</span>
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn btn-sm btn-nav-login">
+                            <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                            <span>Sign In</span>
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-sm btn-nav-register">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Get Started</span>
+                        </a>
+                    {% endif %}
+
+                    <!-- Mobile Hamburger Toggle Button -->
+                    <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <span class="bar bar-1"></span>
+                        <span class="bar bar-2"></span>
+                        <span class="bar bar-3"></span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mobile Drawer Menu -->
+        <div class="mobile-drawer" id="mobileDrawer">
+            <div class="mobile-drawer-header">
+                <div class="mobile-brand">
+                    <i class="fa-solid fa-seedling" style="color: #74C69D;"></i>
+                    <span>SmartFood Rescue</span>
+                </div>
+                <button class="mobile-close-btn" id="mobileCloseBtn" aria-label="Close navigation menu">&times;</button>
+            </div>
+
+            {% if session.get('user_id') %}
+                <div class="mobile-user-card">
+                    <div class="mobile-avatar">
+                        <i class="fa-solid fa-circle-user"></i>
+                    </div>
+                    <div>
+                        <div class="mobile-user-name">{{ session.get('name') }}</div>
+                        <div class="mobile-user-email">{{ session.get('email') }}</div>
+                        <span class="flyout-role-badge role-badge-{{ session.get('user_type', '').lower().replace('/', '-').replace(' ', '-') }}" style="margin-top: 0.35rem;">
+                            {{ session.get('user_type') }}
+                        </span>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="mobile-drawer-content">
+                <div class="mobile-section-title">Main Navigation</div>
+                <a href="{{ url_for('index') }}" class="mobile-nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+                <a href="{{ url_for('donations_list') }}" class="mobile-nav-link {% if request.endpoint in ['donations_list', 'donation_details'] %}active{% endif %}">
+                    <i class="fa-solid fa-bowl-food"></i> Food Listings
+                </a>
+                <a href="{{ url_for('collection_centers_list') }}" class="mobile-nav-link {% if request.endpoint == 'collection_centers_list' %}active{% endif %}">
+                    <i class="fa-solid fa-warehouse"></i> Hubs & Centers
+                </a>
+                <a href="{{ url_for('ngos_list') }}" class="mobile-nav-link {% if request.endpoint == 'ngos_list' %}active{% endif %}">
+                    <i class="fa-solid fa-people-roof"></i> Partner NGOs & Food Banks
+                </a>
+
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('dashboard') }}" class="mobile-nav-link {% if 'dashboard' in request.endpoint %}active{% endif %}">
+                        <i class="fa-solid fa-gauge-high"></i> Dashboard
+                    </a>
+
+                    <div class="mobile-section-title">Operations</div>
+                    <a href="{{ url_for('pickups_list') }}" class="mobile-nav-link {% if request.endpoint == 'pickups_list' %}active{% endif %}">
+                        <i class="fa-solid fa-truck-fast"></i> Pickups & Logistics
+                    </a>
+                    {% if session.get('user_type') in ['Admin', 'Recycler'] %}
+                        <a href="{{ url_for('waste_items_list') }}" class="mobile-nav-link {% if request.endpoint == 'waste_items_list' %}active{% endif %}">
+                            <i class="fa-solid fa-trash-can"></i> Waste Items Registry
+                        </a>
+                        <a href="{{ url_for('processes_list') }}" class="mobile-nav-link {% if request.endpoint == 'processes_list' %}active{% endif %}">
+                            <i class="fa-solid fa-recycle"></i> Recycling Processes
+                        </a>
+                    {% endif %}
+                {% endif %}
+
+                <div class="mobile-section-title">Explore & Tools</div>
+                <a href="{{ url_for('nature_contribution') }}" class="mobile-nav-link {% if request.endpoint == 'nature_contribution' %}active{% endif %}">
+                    <i class="fa-solid fa-leaf" style="color: #74C69D;"></i> Contribution in Nature
+                </a>
+                <a href="{{ url_for('reports_page') }}" class="mobile-nav-link {% if request.endpoint == 'reports_page' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i> Analytics & Reports
+                </a>
+                <a href="{{ url_for('reviews_list') }}" class="mobile-nav-link {% if request.endpoint == 'reviews_list' %}active{% endif %}">
+                    <i class="fa-solid fa-star"></i> Community Reviews
+                </a>
+                <a href="{{ url_for('verify_certificate') }}" class="mobile-nav-link {% if request.endpoint == 'verify_certificate' %}active{% endif %}">
+                    <i class="fa-solid fa-certificate"></i> Verify Certificate
+                </a>
+                <a href="{{ url_for('er_diagram_view') }}" class="mobile-nav-link {% if request.endpoint == 'er_diagram_view' %}active{% endif %}">
+                    <i class="fa-solid fa-diagram-project"></i> ER Diagram & Schema
+                </a>
+                <a href="{{ url_for('viva_queries') }}" class="mobile-nav-link mobile-highlight-link {% if request.endpoint == 'viva_queries' %}active{% endif %}">
+                    <i class="fa-solid fa-database"></i> DBMS Viva Console (16 Queries)
+                </a>
+
+                <div class="mobile-drawer-footer">
+                    {% if session.get('user_id') %}
+                        <a href="{{ url_for('logout') }}" class="btn btn-danger" style="width: 100%;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                        </a>
+                    {% else %}
+                        <div style="display: flex; gap: 0.75rem; flex-direction: column;">
+                            <a href="{{ url_for('login') }}" class="btn btn-outline" style="width: 100%;"><i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In</a>
+                            <a href="{{ url_for('register') }}" class="btn btn-accent" style="width: 100%;"><i class="fa-solid fa-user-plus"></i> Register</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="mobile-drawer-backdrop" id="mobileBackdrop"></div>
+    </header>
+
+    <!-- Floating Flash Toast Notifications -->
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <div class="alert-content">
+                            {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
+                            {% elif category == 'danger' %}<i class="fa-solid fa-circle-exclamation"></i>
+                            {% elif category == 'warning' %}<i class="fa-solid fa-triangle-exclamation"></i>
+                            {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <button class="alert-close" aria-label="Dismiss alert">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Floating Back to Top Button -->
+    <button id="backToTopBtn" class="back-to-top-btn" title="Back to top" aria-label="Scroll back to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-seedling" style="color: #74C69D; font-size: 1.3rem;"></i>
+                    <span style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 700;">SmartFood Rescue</span>
+                </div>
+                <p style="font-size: 0.82rem; font-weight: normal; margin-top: 0.5rem; color: rgba(255,255,255,0.65); max-width: 450px;">
+                    Smart Food Waste Reduction & Donation Management System &mdash; Normalized 3NF Relational Architecture with Flask & MySQL.
+                </p>
+            </div>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('nature_contribution') }}"><i class="fa-solid fa-leaf"></i> Nature Impact</a></li>
+                <li><a href="{{ url_for('donations_list') }}"><i class="fa-solid fa-bowl-food"></i> Food Consignments</a></li>
+                <li><a href="{{ url_for('collection_centers_list') }}"><i class="fa-solid fa-warehouse"></i> Collection Hubs</a></li>
+                <li><a href="{{ url_for('verify_certificate') }}"><i class="fa-solid fa-certificate"></i> Certificates</a></li>
+                <li><a href="{{ url_for('viva_queries') }}"><i class="fa-solid fa-database"></i> Viva Queries</a></li>
+                <li><a href="{{ url_for('reports_page') }}"><i class="fa-solid fa-chart-pie"></i> Analytics</a></li>
+            </ul>
+        </div>
+        <div class="footer-bottom">
+            <span>Designed for Database Management Systems Course Laboratory Examination.</span>
+            <div class="footer-status-pill">
+                <span class="pulse-dot"></span> System Status: Online & Connected
+            </div>
+        </div>
+    </footer>
+
+    <!-- Core Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

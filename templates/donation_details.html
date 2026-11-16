@@ -1,0 +1,489 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ donation.Food_Type }} - Donation Details{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+    <a href="{{ url_for('donations_list') }}" class="btn btn-sm btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Back to Food Listings
+    </a>
+</div>
+
+<div class="grid-3">
+    <!-- Left Column: Food Consignment Specifications -->
+    <div style="grid-column: span 2;">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <span class="badge badge-initiated">{{ donation.Food_Category }}</span>
+                    <h2 style="font-size: 1.6rem; color: var(--dark); margin-top: 0.4rem;">{{ donation.Food_Type }}</h2>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Donation Batch #{{ donation.Donation_ID }} &bull; Listed on {{ donation.Donation_Time|datetime_format }}</div>
+                </div>
+                <div>
+                    {% if donation.Status == 'Available' %}
+                        <span class="badge badge-available" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;">Available</span>
+                    {% elif donation.Status in ['Scheduled', 'Claimed'] %}
+                        <span class="badge badge-scheduled" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;">{{ donation.Status }}</span>
+                    {% elif donation.Status == 'Completed' %}
+                        <span class="badge badge-completed" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;">Completed</span>
+                    {% else %}
+                        <span class="badge badge-expired" style="font-size: 0.9rem; padding: 0.4rem 0.85rem;">{{ donation.Status }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Official Certificate of Appreciation Callout -->
+            {% if donation.Status != 'Cancelled' %}
+                <div style="background: linear-gradient(135deg, #0F2D1F 0%, #1B4332 50%, #2D6A4F 100%); color: #FFFFFF; border-radius: var(--radius-md); padding: 1.25rem 1.6rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-md); flex-wrap: wrap; gap: 1rem; border-left: 5px solid #D4AF37;">
+                    <div>
+                        <div style="font-size: 0.82rem; text-transform: uppercase; letter-spacing: 1px; color: #D4AF37; font-weight: 700;">
+                            <i class="fa-solid fa-award"></i> Verified Civic Impact & Donor Recognition
+                        </div>
+                        <h3 style="color: #FFFFFF; margin: 0.25rem 0 0.2rem 0; font-size: 1.25rem;">Official Certificate of Appreciation Issued</h3>
+                        <div style="font-size: 0.88rem; color: #E8F5E9;">Official tamper-proof certificate generated for {{ donation.Donor_Name }}'s contribution of {{ donation.Quantity }} {{ donation.Unit }} of {{ donation.Food_Type }} ({{ donation.Food_Category }}).</div>
+                    </div>
+                    <a href="{{ url_for('donation_certificate', donation_id=donation.Donation_ID) }}" class="btn" style="background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%); color: #081C15; font-weight: 700; white-space: nowrap; padding: 0.65rem 1.35rem; box-shadow: 0 4px 10px rgba(212,175,55,0.3);" target="_blank">
+                        <i class="fa-solid fa-award"></i> View & Print Certificate
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- Expiry Warning Callout -->
+            {% if donation.Status == 'Available' %}
+                {% if donation.Hours_Until_Expiry <= 6 %}
+                    <div class="alert alert-danger" style="margin-bottom: 1.5rem;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <div>
+                            <strong>CRITICAL DISPATCH NOTICE:</strong> Food expires in approximately {{ donation.Hours_Until_Expiry }} hours. Immediate pickup required to prevent waste.
+                        </div>
+                    </div>
+                {% elif donation.Hours_Until_Expiry <= 24 %}
+                    <div class="alert alert-warning" style="margin-bottom: 1.5rem;">
+                        <i class="fa-solid fa-clock"></i>
+                        <div>
+                            <strong>EXPIRING SOON:</strong> Approximately {{ donation.Hours_Until_Expiry }} hours remaining before consumption threshold.
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Official Food Safety Verification Protocol (FSSAI Standards) -->
+            <div style="background: #FFFFFF; border: 1px solid #D1E7DD; border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); border-left: 5px solid #16A34A;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div>
+                        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #15803D; font-weight: 700;">
+                            <i class="fa-solid fa-shield-check"></i> Quality Assurance & Municipal Inspection
+                        </div>
+                        <h3 style="color: var(--primary-dark); margin: 0.2rem 0 0 0; font-size: 1.2rem;">FSSAI Food Safety & Verification Protocol</h3>
+                    </div>
+                    <div>
+                        {% if donation.Safety_Status == 'Verified Safe' %}
+                            <span class="badge" style="background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; font-size: 0.88rem; padding: 0.4rem 0.85rem;">
+                                <i class="fa-solid fa-shield-check"></i> VERIFIED SAFE FOR CONSUMPTION
+                            </span>
+                        {% elif donation.Safety_Status == 'Diverted to Waste' %}
+                            <span class="badge" style="background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; font-size: 0.88rem; padding: 0.4rem 0.85rem;">
+                                <i class="fa-solid fa-recycle"></i> DIVERTED TO COMPOSTING / BIOGAS
+                            </span>
+                        {% elif donation.Safety_Status == 'Caution Required' %}
+                            <span class="badge" style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 0.88rem; padding: 0.4rem 0.85rem;">
+                                <i class="fa-solid fa-triangle-exclamation"></i> CAUTION: INSPECTION REQUIRED
+                            </span>
+                        {% else %}
+                            <span class="badge badge-pending" style="font-size: 0.88rem; padding: 0.4rem 0.85rem;">
+                                <i class="fa-solid fa-clock"></i> PENDING INSPECTION
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 4-Point Verification Checklist & Thermal Audit -->
+                <div class="grid-2" style="gap: 1rem; margin-bottom: 1rem;">
+                    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+                        <div style="font-size: 0.78rem; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 0.35rem;">Thermal Chain Audit</div>
+                        <div style="display: flex; align-items: baseline; gap: 0.5rem;">
+                            <span style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">{{ donation.Temperature_Celsius or '65.0' }}°C</span>
+                            {% if (donation.Temperature_Celsius or 65.0) >= 60.0 %}
+                                <span style="font-size: 0.75rem; color: #15803D; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Hot-Holding Compliant (&ge;60°C)</span>
+                            {% elif (donation.Temperature_Celsius or 65.0) <= 5.0 %}
+                                <span style="font-size: 0.75rem; color: #0284C7; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Chilled Storage Compliant (&le;5°C)</span>
+                            {% else %}
+                                <span style="font-size: 0.75rem; color: #D97706; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Ambient Freshness Monitored</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+                        <div style="font-size: 0.78rem; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 0.35rem;">Certified Quality Officer</div>
+                        <div style="font-weight: 700; color: var(--dark); font-size: 0.95rem;">
+                            <i class="fa-solid fa-user-check" style="color: #16A34A;"></i> {{ donation.Safety_Inspector or 'PMC Certified Food Safety Inspector' }}
+                        </div>
+                        <div style="font-size: 0.78rem; color: #64748B; margin-top: 0.15rem;">FSSAI Compliance Verification Authority</div>
+                    </div>
+                </div>
+
+                <!-- 4 Inspection Criteria Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.65rem; font-size: 0.82rem; margin-bottom: 0.85rem;">
+                    <div style="display: flex; align-items: center; gap: 0.45rem; color: #166534; background: #F0FDF4; padding: 0.45rem 0.65rem; border-radius: 6px;">
+                        <i class="fa-solid fa-circle-check" style="color: #16A34A;"></i> Sensory: Organoleptic check passed
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.45rem; color: #166534; background: #F0FDF4; padding: 0.45rem 0.65rem; border-radius: 6px;">
+                        <i class="fa-solid fa-circle-check" style="color: #16A34A;"></i> Packaging: Food-grade sealed container
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.45rem; color: #166534; background: #F0FDF4; padding: 0.45rem 0.65rem; border-radius: 6px;">
+                        <i class="fa-solid fa-circle-check" style="color: #16A34A;"></i> Timing: Within safe 4-hour window
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.45rem; color: #166534; background: #F0FDF4; padding: 0.45rem 0.65rem; border-radius: 6px;">
+                        <i class="fa-solid fa-circle-check" style="color: #16A34A;"></i> Hygiene: Kitchen sanitization audited
+                    </div>
+                </div>
+
+                <div style="font-size: 0.85rem; color: #475569; background: #F8FAFC; padding: 0.65rem 0.85rem; border-radius: 6px; border-left: 3px solid #CBD5E1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                    <div><strong>Inspection Remarks:</strong> {{ donation.Safety_Notes or 'Inspected and certified compliant with municipal hygienic food rescue standards.' }}</div>
+                    {% if session.get('user_id') %}
+                        <button class="btn btn-sm btn-outline" onclick="openModal('verifySafetyModal')">
+                            <i class="fa-solid fa-clipboard-check"></i> Update Inspection
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-bottom: 1.5rem;">
+                <div style="background: #F8FAFC; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Rescued Quantity</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">{{ donation.Quantity }} {{ donation.Unit }}</div>
+                </div>
+
+                <div style="background: #F8FAFC; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Packaging Material</div>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--dark); margin-top: 0.35rem;">{{ donation.Packaging_Type }}</div>
+                </div>
+            </div>
+
+            <div class="grid-2" style="font-size: 0.9rem; margin-bottom: 1.5rem;">
+                <div>
+                    <span style="color: var(--text-muted);"><i class="fa-regular fa-calendar-check"></i> Prepared / Packed:</span><br>
+                    <strong>{{ donation.Prepared_On|datetime_format }}</strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-muted);"><i class="fa-regular fa-calendar-xmark"></i> Safe Expiry Date:</span><br>
+                    <strong style="color: #DC2626;">{{ donation.Expiry_Date|datetime_format }}</strong>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <span style="color: var(--text-muted); font-size: 0.9rem;"><i class="fa-solid fa-location-dot"></i> Pickup & Loading Address:</span>
+                <p style="font-weight: 600; color: var(--dark); margin-top: 0.25rem;">{{ donation.Pickup_Address }}</p>
+            </div>
+
+            <!-- Action Buttons for Owner / NGO / Admin -->
+            <div style="display: flex; gap: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem; flex-wrap: wrap;">
+                {% if session.get('user_type') == 'NGO/Receiver' and donation.Status == 'Available' %}
+                    <button class="btn btn-accent" onclick="openClaimModal({{ donation.Donation_ID }}, '{{ donation.Food_Type|escape }}', '{{ donation.Quantity }} {{ donation.Unit }}')">
+                        <i class="fa-solid fa-hand-holding-heart"></i> Claim Food Consignment & Schedule Pickup
+                    </button>
+                {% endif %}
+
+                {% if (session.get('user_id') == donation.User_ID or session.get('user_type') == 'Admin') and donation.Status in ['Available', 'Claimed'] %}
+                    <button class="btn btn-outline" onclick="openModal('editDonationModal')">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit Listing
+                    </button>
+                    <form action="{{ url_for('cancel_donation', donation_id=donation.Donation_ID) }}" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-danger" data-confirm="Are you sure you want to cancel this listing?">
+                            <i class="fa-solid fa-ban"></i> Cancel Listing
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Reviews & Feedback Section -->
+        <div class="card" id="review-section">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fa-solid fa-star" style="color: #F59E0B;"></i> Beneficiary Reviews & Quality Feedback
+                </div>
+            </div>
+
+            {% if reviews %}
+                {% for r in reviews %}
+                    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                            <strong>{{ r.Reviewer_Name }}</strong>
+                            <div style="color: #F59E0B; font-size: 1.1rem;">
+                                {% for i in range(r.Rating) %}★{% endfor %}{% for i in range(5 - r.Rating) %}☆{% endfor %}
+                            </div>
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--dark);">{{ r.Comment }}</p>
+                        <small style="color: var(--text-muted);">Verified on {{ r.Review_Date|date_format }}</small>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-muted); font-size: 0.9rem;">No reviews submitted yet for this consignment.</p>
+            {% endif %}
+
+            <!-- Add Review Form (Only for completed donations by certified NGOs or logged users) -->
+            {% if donation.Status == 'Completed' and session.get('user_id') %}
+                <div style="margin-top: 1.5rem; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+                    <h4 style="font-size: 1rem; color: var(--dark); margin-bottom: 0.75rem;">Submit Quality & Satisfaction Review</h4>
+                    <form action="{{ url_for('add_review', donation_id=donation.Donation_ID) }}" method="POST">
+                        <div class="form-group">
+                            <label class="form-label">Rating (1 to 5 Stars)</label>
+                            <select name="rating" class="form-control" style="max-width: 200px;">
+                                <option value="5" selected>★★★★★ 5 Stars (Exceptional)</option>
+                                <option value="4">★★★★☆ 4 Stars (Very Good)</option>
+                                <option value="3">★★★☆☆ 3 Stars (Satisfactory)</option>
+                                <option value="2">★★☆☆☆ 2 Stars (Minor Issues)</option>
+                                <option value="1">★☆☆☆☆ 1 Star (Substandard)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Review Comment</label>
+                            <textarea name="comment" class="form-control" rows="2" placeholder="Describe food freshness, temperature at arrival, packaging condition, and beneficiaries served..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="fa-solid fa-paper-plane"></i> Submit Feedback
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column: Associated Entities (Donor, NGO, Pickup) -->
+    <div>
+        <!-- Donor Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title" style="font-size: 1.05rem;">
+                    <i class="fa-solid fa-building" style="color: var(--primary);"></i> Donor Organization
+                </div>
+            </div>
+            <p style="font-weight: 700; font-size: 1.05rem; color: var(--dark);">{{ donation.Donor_Name }}</p>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.4rem;">
+                <div><i class="fa-solid fa-phone"></i> {{ donation.Donor_Phone }}</div>
+                <div><i class="fa-solid fa-envelope"></i> {{ donation.Donor_Email }}</div>
+            </div>
+        </div>
+
+        <!-- Beneficiary NGO Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title" style="font-size: 1.05rem;">
+                    <i class="fa-solid fa-handshake-angle" style="color: var(--accent-orange);"></i> Claimed Beneficiary
+                </div>
+            </div>
+            {% if donation.NGO_Name %}
+                <p style="font-weight: 700; font-size: 1.05rem; color: var(--dark);">{{ donation.NGO_Name }}</p>
+                <span class="badge badge-initiated">{{ donation.NGO_Type }}</span>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
+                    <div><i class="fa-solid fa-phone"></i> {{ donation.NGO_Contact }}</div>
+                </div>
+            {% else %}
+                <p style="font-size: 0.9rem; color: var(--text-muted); font-style: italic;">
+                    Not yet claimed by an NGO. Certified food banks can claim this batch.
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Logistics & Pickup Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title" style="font-size: 1.05rem;">
+                    <i class="fa-solid fa-truck" style="color: #0288D1;"></i> Logistics & Transport
+                </div>
+            </div>
+            {% if donation.Vehicle_No %}
+                <div style="font-size: 0.9rem;">
+                    <div style="margin-bottom: 0.4rem;">
+                        <span style="color: var(--text-muted);">Status:</span>
+                        <span class="badge {% if donation.Pickup_Status == 'Completed' %}badge-completed{% else %}badge-scheduled{% endif %}">
+                            {{ donation.Pickup_Status }}
+                        </span>
+                    </div>
+                    <div><span style="color: var(--text-muted);">Pickup Time:</span> <strong>{{ donation.Pickup_Time|datetime_format }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Vehicle Reg:</span> <strong>{{ donation.Vehicle_No }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Driver:</span> <strong>{{ donation.Driver_Name }}</strong></div>
+                    {% if donation.Pickup_Notes %}
+                        <div style="margin-top: 0.4rem; font-size: 0.85rem; color: var(--text-muted); font-style: italic;">"{{ donation.Pickup_Notes }}"</div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p style="font-size: 0.9rem; color: var(--text-muted); font-style: italic;">
+                    Pickup will be scheduled upon NGO reservation.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Edit Donation (Owner/Admin) -->
+<div id="editDonationModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-pen-to-square"></i> Edit Surplus Food Listing</h3>
+            <button class="modal-close" onclick="closeModal('editDonationModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('edit_donation', donation_id=donation.Donation_ID) }}" method="POST">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Food Title</label>
+                    <input type="text" name="food_type" class="form-control" value="{{ donation.Food_Type }}" required>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Quantity ({{ donation.Unit }})</label>
+                        <input type="number" step="0.5" name="quantity" class="form-control" value="{{ donation.Quantity }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Packaging Type</label>
+                        <input type="text" name="packaging_type" class="form-control" value="{{ donation.Packaging_Type }}" required>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Pickup Address</label>
+                    <textarea name="pickup_address" class="form-control" rows="2" required>{{ donation.Pickup_Address }}</textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('editDonationModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Claim Donation & Schedule Pickup -->
+<div id="claimModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-calendar-check"></i> Claim Donation & Schedule Logistics</h3>
+            <button class="modal-close" onclick="closeModal('claimModal')">&times;</button>
+        </div>
+        <form id="claimForm" action="{{ url_for('claim_donation', donation_id=donation.Donation_ID) }}" method="POST">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Scheduled Pickup Date & Time</label>
+                    <input type="datetime-local" name="pickup_time" class="form-control" required>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Vehicle Registration Number</label>
+                        <input type="text" name="vehicle_no" class="form-control" placeholder="e.g. KA-04-MB-4412" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Driver / Transport Incharge Name</label>
+                        <input type="text" name="driver_name" class="form-control" placeholder="e.g. Sunil Jadhav" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Routing Collection Center (Optional)</label>
+                    <select name="center_id" class="form-control">
+                        <option value="">Direct Delivery to NGO Facility</option>
+                        {% for c in centers %}
+                            <option value="{{ c.Center_ID }}">{{ c.Center_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Dispatch Notes</label>
+                    <textarea name="notes" class="form-control" rows="2" placeholder="e.g. Temperature insulated boxes loaded."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('claimModal')">Cancel</button>
+                <button type="submit" class="btn btn-accent"><i class="fa-solid fa-lock"></i> Confirm Claim</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Modal: Update Food Safety & Quality Verification -->
+<div id="verifySafetyModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-shield-check" style="color: #16A34A;"></i> Update Food Safety Inspection</h3>
+            <button class="modal-close" onclick="closeModal('verifySafetyModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('verify_food_safety', donation_id=donation.Donation_ID) }}" method="POST">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Food Safety Assessment Status</label>
+                    <select name="safety_status" class="form-control" required>
+                        <option value="Verified Safe" {% if donation.Safety_Status == 'Verified Safe' %}selected{% endif %}>Verified Safe (Approved for Human Consumption)</option>
+                        <option value="Caution Required" {% if donation.Safety_Status == 'Caution Required' %}selected{% endif %}>Caution Required (Secondary Kitchen Reheat / Inspection Needed)</option>
+                        <option value="Diverted to Waste" {% if donation.Safety_Status == 'Diverted to Waste' %}selected{% endif %}>Diverted to Waste (Unfit for Human Consumption &rarr; Composting/Biogas)</option>
+                        <option value="Pending Inspection" {% if donation.Safety_Status == 'Pending Inspection' %}selected{% endif %}>Pending Inspection</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Measured Temperature (°C)</label>
+                    <input type="number" step="0.1" name="temperature" class="form-control" value="{{ donation.Temperature_Celsius or '65.0' }}" required>
+                    <small style="color: var(--text-muted);">Hot holding must exceed 60°C; chilled storage must remain below 5°C.</small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Inspection Remarks & Sensory Test Findings</label>
+                    <textarea name="safety_notes" class="form-control" rows="3" placeholder="Document organoleptic test, aroma, color, packaging seal, and transport conditions..." required>{{ donation.Safety_Notes or '' }}</textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('verifySafetyModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check-circle"></i> Save Inspection Record</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Modal: Update Food Safety & Quality Verification -->
+<div id="verifySafetyModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-shield-check" style="color: #16A34A;"></i> Update Food Safety Inspection</h3>
+            <button class="modal-close" onclick="closeModal('verifySafetyModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('verify_food_safety', donation_id=donation.Donation_ID) }}" method="POST">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Food Safety Assessment Status</label>
+                    <select name="safety_status" class="form-control" required>
+                        <option value="Verified Safe" {% if donation.Safety_Status == 'Verified Safe' %}selected{% endif %}>Verified Safe (Approved for Human Consumption)</option>
+                        <option value="Caution Required" {% if donation.Safety_Status == 'Caution Required' %}selected{% endif %}>Caution Required (Secondary Kitchen Reheat / Inspection Needed)</option>
+                        <option value="Diverted to Waste" {% if donation.Safety_Status == 'Diverted to Waste' %}selected{% endif %}>Diverted to Waste (Unfit for Human Consumption &rarr; Composting/Biogas)</option>
+                        <option value="Pending Inspection" {% if donation.Safety_Status == 'Pending Inspection' %}selected{% endif %}>Pending Inspection</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Measured Temperature (°C)</label>
+                    <input type="number" step="0.1" name="temperature" class="form-control" value="{{ donation.Temperature_Celsius or '65.0' }}" required>
+                    <small style="color: var(--text-muted);">Hot holding must exceed 60°C; chilled storage must remain below 5°C.</small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Inspection Remarks & Sensory Test Findings</label>
+                    <textarea name="safety_notes" class="form-control" rows="3" placeholder="Document organoleptic test, aroma, color, packaging seal, and transport conditions..." required>{{ donation.Safety_Notes or '' }}</textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('verifySafetyModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check-circle"></i> Save Inspection Record</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openClaimModal(donationId, foodType, qty) {
+    openModal('claimModal');
+}
+</script>
+{% endblock %}

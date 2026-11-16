@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Waste Inventory & Triage - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <h1 style="font-size: 1.8rem; color: var(--dark);">Waste Items & Triage Log</h1>
+        <p style="color: var(--text-muted);">
+            Log inedible food surplus, spoiled agricultural produce, and packaging waste for circular recovery.
+        </p>
+    </div>
+    {% if session.get('user_type') in ['Admin', 'Recycler'] %}
+        <button class="btn btn-primary" onclick="openModal('logWasteModal')">
+            <i class="fa-solid fa-plus-circle"></i> Log Waste Batch
+        </button>
+    {% endif %}
+</div>
+
+<!-- What Happens to Waste Food? — Circular Valorization Protocol -->
+<div class="card" style="margin-top: 1.5rem; border-left: 5px solid #2E7D32; background: linear-gradient(135deg, #F8FDF9 0%, #FFFFFF 100%);">
+    <div class="card-header" style="border: none; padding-bottom: 0.25rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: #166534; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fa-solid fa-recycle"></i> 100% Landfill Diversion Policy
+            </div>
+            <h2 style="font-size: 1.35rem; color: var(--dark); margin: 0.25rem 0 0.15rem 0;">
+                What Happens to Waste Food? — Circular Valorization Protocol
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                Food deemed inedible or failed safety verification is routed into biological and material transformation pipelines across PMC hubs:
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{{ url_for('processes_list') }}" class="btn btn-accent btn-sm">
+                <i class="fa-solid fa-gears"></i> View Active Conversion Runs
+            </a>
+        </div>
+    </div>
+
+    <div class="grid-4" style="margin: 1.25rem 0 0.25rem; gap: 1rem;">
+        <!-- Pathway 1 -->
+        <div style="background: #FFFFFF; border: 1px solid #BBF7D0; border-radius: var(--radius-sm); padding: 1rem; border-top: 4px solid #16A34A;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+                <span style="background: #DCFCE7; color: #16A34A; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">1</span>
+                <strong style="color: var(--dark); font-size: 0.95rem;">Aerobic Composting</strong>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+                Solid kitchen scraps and spoiled produce undergo 21-day microbial aeration at 55–65°C.
+            </div>
+            <div style="margin-top: 0.6rem; padding: 0.4rem 0.6rem; background: #F0FDF4; border-radius: 4px; font-size: 0.78rem; color: #166534; font-weight: 600;">
+                🌾 100 kg Waste &rarr; 35 kg Organic Compost
+            </div>
+        </div>
+
+        <!-- Pathway 2 -->
+        <div style="background: #FFFFFF; border: 1px solid #BFDBFE; border-radius: var(--radius-sm); padding: 1rem; border-top: 4px solid #0288D1;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+                <span style="background: #DBEAFE; color: #0288D1; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">2</span>
+                <strong style="color: var(--dark); font-size: 0.95rem;">Anaerobic Biogas / Bio-CNG</strong>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+                High-moisture cooked food sludges ferment in sealed anaerobic digesters producing methane.
+            </div>
+            <div style="margin-top: 0.6rem; padding: 0.4rem 0.6rem; background: #EFF6FF; border-radius: 4px; font-size: 0.78rem; color: #0369A1; font-weight: 600;">
+                ⚡ 100 kg Waste &rarr; 8–12 m³ Bio-CNG Fuel
+            </div>
+        </div>
+
+        <!-- Pathway 3 -->
+        <div style="background: #FFFFFF; border: 1px solid #FED7AA; border-radius: var(--radius-sm); padding: 1rem; border-top: 4px solid #EA580C;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+                <span style="background: #FFEDD5; color: #EA580C; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">3</span>
+                <strong style="color: var(--dark); font-size: 0.95rem;">Material Recycling</strong>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+                Inorganic food packaging, tin containers, cartons, and plastic liners are segregated and baled.
+            </div>
+            <div style="margin-top: 0.6rem; padding: 0.4rem 0.6rem; background: #FFF7ED; border-radius: 4px; font-size: 0.78rem; color: #C2410C; font-weight: 600;">
+                📦 95% Secondary Raw Material Recovery
+            </div>
+        </div>
+
+        <!-- Pathway 4 -->
+        <div style="background: #FFFFFF; border: 1px solid #E9D5FF; border-radius: var(--radius-sm); padding: 1rem; border-top: 4px solid #9333EA;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+                <span style="background: #F3E8FF; color: #9333EA; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">4</span>
+                <strong style="color: var(--dark); font-size: 0.95rem;">Biomass Briquettes</strong>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+                Dry stalks, vegetable fibers, and fibrous digestate are compacted into high-density fuel briquettes.
+            </div>
+            <div style="margin-top: 0.6rem; padding: 0.4rem 0.6rem; background: #FAF5FF; border-radius: 4px; font-size: 0.78rem; color: #7E22CE; font-weight: 600;">
+                🔥 Coal-Replacement Clean Boiler Fuel
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Waste Items Table -->
+<div class="card" style="margin-top: 1.5rem;">
+    {% if waste_items %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Waste ID</th>
+                        <th>Collection Hub</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Logged Date</th>
+                        <th>Description & Source</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in waste_items %}
+                        <tr>
+                            <td>#{{ w.Waste_ID }}</td>
+                            <td><strong>{{ w.Center_Name }}</strong></td>
+                            <td><span class="badge badge-initiated">{{ w.Waste_Type }}</span></td>
+                            <td><strong style="color: var(--primary);">{{ w.Quantity }} {{ w.Unit }}</strong></td>
+                            <td>{{ w.Recorded_Date|datetime_format }}</td>
+                            <td><small>{{ w.Description }}</small></td>
+                            <td>
+                                {% if w.Status == 'Processed' %}
+                                    <span class="badge badge-completed">Processed</span>
+                                {% elif w.Status == 'In Processing' %}
+                                    <span class="badge badge-scheduled">In Processing</span>
+                                {% else %}
+                                    <span class="badge badge-pending">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 3rem; color: #CBD5E1; margin-bottom: 0.75rem;"><i class="fa-solid fa-trash-can"></i></div>
+            <h3>No Waste Items Logged Yet</h3>
+            <p style="margin-top: 0.35rem;">Log inedible items arriving at municipal triage centers.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal: Log Inedible Waste Item -->
+<div id="logWasteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-dumpster"></i> Log Inedible / Spoiled Waste Batch</h3>
+            <button class="modal-close" onclick="closeModal('logWasteModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('log_waste_item') }}" method="POST">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Receiving Collection Center</label>
+                    <select name="center_id" class="form-control" required>
+                        {% for c in centers %}
+                            <option value="{{ c.Center_ID }}">{{ c.Center_Name }} (Occupancy: {{ c.Current_Occupancy }}/{{ c.Capacity }} kg)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Waste Classification (Diagram: Food / Organic / Inorganic)</label>
+                        <select name="waste_type" class="form-control" required>
+                            <option value="Food">Food (Spoiled / Expired Consignments)</option>
+                            <option value="Organic" selected>Organic (Kitchen Trimmings & Scraps)</option>
+                            <option value="Inorganic">Inorganic (Packaging / Liners / Tins)</option>
+                            <option value="Expired Food Scraps">Expired Food Scraps</option>
+                            <option value="Organic Kitchen Waste">Organic Kitchen Waste</option>
+                            <option value="Spoiled Produce">Spoiled Produce</option>
+                            <option value="Packaging / Inorganics">Packaging / Inorganics</option>
+                            <option value="Biomass Residue">Biomass Residue</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" step="0.5" name="quantity" class="form-control" placeholder="e.g. 200" required>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Condition & Batch Details</label>
+                    <textarea name="description" class="form-control" rows="2" placeholder="e.g. Moldy bread and overripe produce suitable for composting batch." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('logWasteModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Record Waste</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

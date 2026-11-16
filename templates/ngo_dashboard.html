@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}NGO Dashboard - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <h1 style="font-size: 1.8rem; color: var(--dark);">NGO / Receiver Dashboard</h1>
+        <p style="color: var(--text-muted);">
+            Certified Partner: <strong>{{ session.get('ngo_name', session.get('name')) }}</strong> -- Browse available meals, claim lots, and schedule dispatches.
+        </p>
+    </div>
+</div>
+
+<!-- Section 1: Live Available Surplus Food (Ready to Claim) -->
+<div class="card" style="margin-top: 1.5rem;">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-bullhorn" style="color: var(--badge-green);"></i> Available Surplus Food Feed (Live Active Batches)
+        </div>
+        <span class="badge badge-available">{{ available_donations|length }} Batches Available</span>
+    </div>
+
+    {% if available_donations %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Food Details</th>
+                        <th>Donor Business</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Packaging</th>
+                        <th>Shelf Life Left</th>
+                        <th>Pickup Address</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in available_donations %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.Food_Type }}</strong>
+                            </td>
+                            <td>
+                                <strong>{{ item.Donor_Name }}</strong><br>
+                                <small style="color: var(--text-muted);"><i class="fa-solid fa-phone"></i> {{ item.Donor_Phone }}</small>
+                            </td>
+                            <td><span class="badge badge-initiated">{{ item.Food_Category }}</span></td>
+                            <td><strong style="color: var(--primary);">{{ item.Quantity }} {{ item.Unit }}</strong></td>
+                            <td><small style="color: var(--text-muted);">{{ item.Packaging_Type }}</small></td>
+                            <td>
+                                {% if item.Hours_Until_Expiry <= 6 %}
+                                    <span class="urgent-pill"><i class="fa-solid fa-triangle-exclamation"></i> {{ item.Hours_Until_Expiry }} hrs left</span>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-weight: 600;"><i class="fa-regular fa-clock"></i> {{ item.Hours_Until_Expiry }} hrs</span>
+                                {% endif %}
+                            </td>
+                            <td><small>{{ item.Pickup_Address }}</small></td>
+                            <td>
+                                <button class="btn btn-sm btn-accent" onclick="openClaimModal({{ item.Donation_ID }}, '{{ item.Food_Type|escape }}', '{{ item.Quantity }} {{ item.Unit }}')">
+                                    <i class="fa-solid fa-hand-holding-heart"></i> Claim & Schedule
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="text-align: center; color: var(--text-muted); padding: 2rem;">
+            No food batches are available at this moment. You will be alerted as donors post new batches.
+        </p>
+    {% endif %}
+</div>
+
+<!-- Section 2: My Claimed Donations & Pickup Tracking -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-truck-fast" style="color: var(--primary);"></i> My Claimed Consignments & Dispatch Tracking
+        </div>
+    </div>
+
+    {% if my_claimed %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Donation ID</th>
+                        <th>Food Item</th>
+                        <th>Donor</th>
+                        <th>Quantity</th>
+                        <th>Pickup Time</th>
+                        <th>Vehicle & Driver</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in my_claimed %}
+                        <tr>
+                            <td>#{{ d.Donation_ID }}</td>
+                            <td><strong>{{ d.Food_Type }}</strong></td>
+                            <td>
+                                {{ d.Donor_Name }}<br>
+                                <small style="color: var(--text-muted);">{{ d.Donor_Phone }}</small>
+                            </td>
+                            <td><strong>{{ d.Quantity }} {{ d.Unit }}</strong></td>
+                            <td>
+                                {% if d.Pickup_Time %}
+                                    {{ d.Pickup_Time|datetime_format }}
+                                {% else %}
+                                    <span style="color: var(--text-muted);">Pending Schedule</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if d.Driver_Name %}
+                                    <strong>{{ d.Driver_Name }}</strong> ({{ d.Vehicle_No }})
+                                {% else %}
+                                    <span style="color: var(--text-muted);">Not Assigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if d.Status == 'Completed' %}
+                                    <span class="badge badge-completed">Completed</span>
+                                {% elif d.Status in ['Scheduled', 'Picked'] %}
+                                    <span class="badge badge-scheduled">{{ d.Status }}</span>
+                                {% else %}
+                                    <span class="badge badge-pending">{{ d.Status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 0.35rem;">
+                                    <a href="{{ url_for('donation_details', donation_id=d.Donation_ID) }}" class="btn btn-sm btn-outline">
+                                        <i class="fa-solid fa-eye"></i> Details
+                                    </a>
+                                    {% if d.Status == 'Completed' and not d.Review_ID %}
+                                        <a href="{{ url_for('donation_details', donation_id=d.Donation_ID) }}#review-section" class="btn btn-sm btn-accent">
+                                            <i class="fa-solid fa-star"></i> Review
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="text-align: center; color: var(--text-muted); padding: 2rem;">
+            You have not claimed any food consignments yet. Claim from the active feed above!
+        </p>
+    {% endif %}
+</div>
+
+<!-- Modal: Claim Donation & Schedule Pickup -->
+<div id="claimModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-calendar-check"></i> Claim Donation & Schedule Logistics</h3>
+            <button class="modal-close" onclick="closeModal('claimModal')">&times;</button>
+        </div>
+        <form id="claimForm" action="" method="POST">
+            <div class="modal-body">
+                <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 1.25rem;">
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Claiming Consignment:</div>
+                    <div id="claim-food-title" style="font-size: 1.05rem; font-weight: 700; color: var(--dark);"></div>
+                    <div id="claim-food-qty" style="font-size: 0.9rem; color: var(--primary); font-weight: 600;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Scheduled Pickup Date & Time</label>
+                    <input type="datetime-local" name="pickup_time" class="form-control" required>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Vehicle Registration Number</label>
+                        <input type="text" name="vehicle_no" class="form-control" placeholder="e.g. DL-01-AX-9921" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Driver / Transport Incharge Name</label>
+                        <input type="text" name="driver_name" class="form-control" placeholder="e.g. Ramesh Kumar" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Route via Collection Center (Optional Inspection)</label>
+                    <select name="center_id" class="form-control">
+                        <option value="">Direct Delivery to NGO Facility</option>
+                        {% for c in centers %}
+                            <option value="{{ c.Center_ID }}">{{ c.Center_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Logistics Dispatch Notes</label>
+                    <textarea name="notes" class="form-control" rows="2" placeholder="e.g. Insulated temperature boxes loaded; driver will arrive at rear gate."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('claimModal')">Cancel</button>
+                <button type="submit" class="btn btn-accent"><i class="fa-solid fa-lock"></i> Confirm Claim & Schedule</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openClaimModal(donationId, foodType, qty) {
+    document.getElementById('claimForm').action = "/donations/" + donationId + "/claim";
+    document.getElementById('claim-food-title').textContent = foodType;
+    document.getElementById('claim-food-qty').textContent = "Quantity: " + qty;
+    openModal('claimModal');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrator Dashboard - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <h1 style="font-size: 1.8rem; color: var(--dark);">Administrator Master Dashboard</h1>
+        <p style="color: var(--text-muted);">Comprehensive system governance, relational table oversight, and audit logs.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('export_csv_report') }}" class="btn btn-outline">
+            <i class="fa-solid fa-file-csv"></i> Export CSV Audit Report
+        </a>
+        <a href="{{ url_for('reports_page') }}" class="btn btn-primary">
+            <i class="fa-solid fa-chart-line"></i> Analytics & BI Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- High-Level KPI Summary -->
+<div class="grid-4" style="margin: 1.5rem 0 2rem;">
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ (stats.total_food_rescued_kg or 0)|round(1) }} kg</div>
+            <div class="stat-label">Food Saved from Waste</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="fa-solid fa-users"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ stats.total_users or 0 }}</div>
+            <div class="stat-label">Total Registered Actors</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ stats.total_donations or 0 }}</div>
+            <div class="stat-label">Total Donation Records</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i class="fa-solid fa-recycle"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ (stats.total_waste_kg or 0)|round(1) }} kg</div>
+            <div class="stat-label">Waste Diverted to Bioprocess</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabbed Administration System -->
+<div class="card">
+    <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+        <button class="btn btn-sm btn-primary admin-tab-btn" onclick="showTab('tab-users')"><i class="fa-solid fa-users"></i> Users ({{ users|length }})</button>
+        <button class="btn btn-sm btn-outline admin-tab-btn" onclick="showTab('tab-donations')"><i class="fa-solid fa-bowl-food"></i> Donations ({{ donations|length }})</button>
+        <button class="btn btn-sm btn-outline admin-tab-btn" onclick="showTab('tab-pickups')"><i class="fa-solid fa-truck"></i> Pickups ({{ pickups|length }})</button>
+        <button class="btn btn-sm btn-outline admin-tab-btn" onclick="showTab('tab-centers')"><i class="fa-solid fa-warehouse"></i> Centers ({{ centers|length }})</button>
+        <button class="btn btn-sm btn-outline admin-tab-btn" onclick="showTab('tab-waste')"><i class="fa-solid fa-trash-can"></i> Waste Items ({{ waste_items|length }})</button>
+        <button class="btn btn-sm btn-outline admin-tab-btn" onclick="showTab('tab-reviews')"><i class="fa-solid fa-star"></i> Reviews ({{ reviews|length }})</button>
+    </div>
+
+    <!-- Tab 1: Users -->
+    <div id="tab-users" class="admin-tab-pane">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Date Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                        <tr>
+                            <td>#{{ u.User_ID }}</td>
+                            <td><strong>{{ u.Name }}</strong></td>
+                            <td>{{ u.Email }}</td>
+                            <td>{{ u.Phone }}</td>
+                            <td>
+                                {% if u.User_Type == 'Admin' %}
+                                    <span class="badge badge-expired">{{ u.User_Type }}</span>
+                                {% elif u.User_Type == 'Donor' %}
+                                    <span class="badge badge-available">{{ u.User_Type }}</span>
+                                {% elif u.User_Type == 'NGO/Receiver' %}
+                                    <span class="badge badge-scheduled">{{ u.User_Type }}</span>
+                                {% else %}
+                                    <span class="badge badge-initiated">{{ u.User_Type }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ u.Date_Joined|date_format }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 2: Donations -->
+    <div id="tab-donations" class="admin-tab-pane" style="display: none;">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Food Item</th>
+                        <th>Donor</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Listed Date</th>
+                        <th>Status</th>
+                        <th>Claimed By</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in donations %}
+                        <tr>
+                            <td>#{{ d.Donation_ID }}</td>
+                            <td><strong>{{ d.Food_Type }}</strong></td>
+                            <td>{{ d.Donor_Name }}</td>
+                            <td><span class="badge badge-initiated">{{ d.Food_Category }}</span></td>
+                            <td>{{ d.Quantity }} {{ d.Unit }}</td>
+                            <td>{{ d.Donation_Time|date_format }}</td>
+                            <td>
+                                {% if d.Status == 'Completed' %}
+                                    <span class="badge badge-completed">{{ d.Status }}</span>
+                                {% elif d.Status == 'Available' %}
+                                    <span class="badge badge-available">{{ d.Status }}</span>
+                                {% else %}
+                                    <span class="badge badge-scheduled">{{ d.Status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ d.NGO_Name or 'Unclaimed' }}</td>
+                            <td>
+                                <a href="{{ url_for('donation_details', donation_id=d.Donation_ID) }}" class="btn btn-sm btn-outline">Details</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 3: Pickups -->
+    <div id="tab-pickups" class="admin-tab-pane" style="display: none;">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Pickup ID</th>
+                        <th>Donation</th>
+                        <th>Routing Center</th>
+                        <th>Scheduled Time</th>
+                        <th>Vehicle</th>
+                        <th>Driver</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pickups %}
+                        <tr>
+                            <td>#{{ p.Pickup_ID }}</td>
+                            <td>#{{ p.Donation_ID }} - {{ p.Food_Type }}</td>
+                            <td>{{ p.Center_Name or 'Direct Delivery' }}</td>
+                            <td>{{ p.Pickup_Time|datetime_format }}</td>
+                            <td><strong>{{ p.Vehicle_No }}</strong></td>
+                            <td>{{ p.Driver_Name }}</td>
+                            <td>
+                                {% if p.Status == 'Completed' %}
+                                    <span class="badge badge-completed">{{ p.Status }}</span>
+                                {% else %}
+                                    <span class="badge badge-scheduled">{{ p.Status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 4: Centers -->
+    <div id="tab-centers" class="admin-tab-pane" style="display: none;">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Center Name</th>
+                        <th>Type</th>
+                        <th>Contact</th>
+                        <th>Capacity</th>
+                        <th>Occupancy</th>
+                        <th>Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in centers %}
+                        <tr>
+                            <td>#{{ c.Center_ID }}</td>
+                            <td><strong>{{ c.Center_Name }}</strong></td>
+                            <td><span class="badge badge-initiated">{{ c.Center_Type }}</span></td>
+                            <td>{{ c.Contact_No }}</td>
+                            <td>{{ c.Capacity }} kg</td>
+                            <td><strong>{{ c.Current_Occupancy }} kg</strong></td>
+                            <td><small>{{ c.Address }}</small></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 5: Waste Items -->
+    <div id="tab-waste" class="admin-tab-pane" style="display: none;">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Center</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Logged Date</th>
+                        <th>Status</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in waste_items %}
+                        <tr>
+                            <td>#{{ w.Waste_ID }}</td>
+                            <td>{{ w.Center_Name }}</td>
+                            <td><span class="badge badge-initiated">{{ w.Waste_Type }}</span></td>
+                            <td><strong>{{ w.Quantity }} {{ w.Unit }}</strong></td>
+                            <td>{{ w.Recorded_Date|date_format }}</td>
+                            <td><span class="badge badge-available">{{ w.Status }}</span></td>
+                            <td><small>{{ w.Description }}</small></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 6: Reviews -->
+    <div id="tab-reviews" class="admin-tab-pane" style="display: none;">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Review ID</th>
+                        <th>Donation</th>
+                        <th>Reviewer</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Review Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reviews %}
+                        <tr>
+                            <td>#{{ r.Review_ID }}</td>
+                            <td>#{{ r.Donation_ID }} - {{ r.Food_Type }}</td>
+                            <td><strong>{{ r.Reviewer_Name }}</strong></td>
+                            <td>
+                                <span style="color: #F59E0B; font-weight: 700;">
+                                    {% for i in range(r.Rating) %}★{% endfor %}
+                                </span>
+                            </td>
+                            <td>{{ r.Comment }}</td>
+                            <td>{{ r.Review_Date|date_format }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showTab(tabId) {
+    document.querySelectorAll('.admin-tab-pane').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline');
+    });
+    
+    document.getElementById(tabId).style.display = 'block';
+    event.currentTarget.classList.remove('btn-outline');
+    event.currentTarget.classList.add('btn-primary');
+}
+</script>
+{% endblock %}

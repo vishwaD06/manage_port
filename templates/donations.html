@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block title %}Surplus Food Listings - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <h1 style="font-size: 1.8rem; color: var(--dark);">Surplus Food Consignments</h1>
+        <p style="color: var(--text-muted);">
+            Browse edible surplus batches made available by verified commercial donors.
+        </p>
+    </div>
+    {% if session.get('user_type') == 'Donor' %}
+        <a href="{{ url_for('donor_dashboard') }}" class="btn btn-accent">
+            <i class="fa-solid fa-plus-circle"></i> Donate Surplus Food
+        </a>
+    {% endif %}
+</div>
+
+<!-- Search & Filtering Toolbar -->
+<div class="card" style="margin: 1.5rem 0; padding: 1.25rem;">
+    <form action="{{ url_for('donations_list') }}" method="GET">
+        <div class="grid-4" style="align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Search Food / Location / Donor</label>
+                <input type="text" name="search" class="form-control" placeholder="Search keywords..." value="{{ search }}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Food Category / Dietary</label>
+                <select name="category" class="form-control">
+                    <option value="">All Categories & Dietary</option>
+                    <option value="Cooked Food" {% if current_category == 'Cooked Food' %}selected{% endif %}>Cooked Food</option>
+                    <option value="Cooked Food (Veg)" {% if current_category == 'Cooked Food (Veg)' %}selected{% endif %}>Cooked Food (Veg)</option>
+                    <option value="Cooked Food (Non-Veg)" {% if current_category == 'Cooked Food (Non-Veg)' %}selected{% endif %}>Cooked Food (Non-Veg)</option>
+                    <option value="Raw Groceries" {% if current_category == 'Raw Groceries' %}selected{% endif %}>Raw Groceries</option>
+                    <option value="Bakery" {% if current_category == 'Bakery' %}selected{% endif %}>Bakery</option>
+                    <option value="Fruits & Vegetables" {% if current_category == 'Fruits & Vegetables' %}selected{% endif %}>Fruits & Vegetables</option>
+                    <option value="Packaged/Canned" {% if current_category == 'Packaged/Canned' %}selected{% endif %}>Packaged/Canned</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="">All Statuses</option>
+                    <option value="Available" {% if current_status == 'Available' %}selected{% endif %}>Available Only</option>
+                    <option value="Scheduled" {% if current_status == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+                    <option value="Completed" {% if current_status == 'Completed' %}selected{% endif %}>Completed</option>
+                    <option value="Expired" {% if current_status == 'Expired' %}selected{% endif %}>Expired</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="fa-solid fa-filter"></i> Filter</button>
+                <a href="{{ url_for('donations_list') }}" class="btn btn-outline" title="Reset Filters"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Donations Table -->
+<div class="card">
+    {% if donations %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Consignment</th>
+                        <th>Category</th>
+                        <th>Donor Organization</th>
+                        <th>Quantity</th>
+                        <th>Shelf Life Status</th>
+                        <th>Pickup Address</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in donations %}
+                        <tr>
+                            <td>
+                                <strong style="font-size: 0.95rem;">{{ d.Food_Type }}</strong><br>
+                                <small style="color: var(--text-muted);"><i class="fa-solid fa-box"></i> {{ d.Packaging_Type }}</small><br>
+                                <span class="badge" style="background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; font-size: 0.72rem; padding: 0.15rem 0.5rem; margin-top: 0.2rem;">
+                                    <i class="fa-solid fa-shield-check"></i> {{ d.Safety_Status or 'Verified Safe' }} ({{ d.Temperature_Celsius or '65.0' }}°C)
+                                </span>
+                            </td>
+                            <td><span class="badge badge-initiated">{{ d.Food_Category }}</span></td>
+                            <td>
+                                <strong>{{ d.Donor_Name }}</strong><br>
+                                <small style="color: var(--text-muted);"><i class="fa-solid fa-phone"></i> {{ d.Donor_Phone }}</small>
+                            </td>
+                            <td><strong style="color: var(--primary);">{{ d.Quantity }} {{ d.Unit }}</strong></td>
+                            <td>
+                                {% if d.Status == 'Available' %}
+                                    {% if d.Hours_Until_Expiry <= 6 %}
+                                        <span class="urgent-pill"><i class="fa-solid fa-fire"></i> {{ d.Hours_Until_Expiry }} hrs left</span>
+                                    {% else %}
+                                        <span style="color: var(--text-muted); font-weight: 600;"><i class="fa-regular fa-clock"></i> {{ d.Hours_Until_Expiry }} hrs</span>
+                                    {% endif %}
+                                {% else %}
+                                    <small style="color: var(--text-muted);">{{ d.Expiry_Date|date_format }}</small>
+                                {% endif %}
+                            </td>
+                            <td><small>{{ d.Pickup_Address }}</small></td>
+                            <td>
+                                {% if d.Status == 'Available' %}
+                                    <span class="badge badge-available">Available</span>
+                                {% elif d.Status in ['Scheduled', 'Claimed'] %}
+                                    <span class="badge badge-scheduled">{{ d.Status }}</span>
+                                {% elif d.Status == 'Completed' %}
+                                    <span class="badge badge-completed">Completed</span>
+                                {% else %}
+                                    <span class="badge badge-expired">{{ d.Status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 0.35rem; align-items: center;">
+                                    <a href="{{ url_for('donation_details', donation_id=d.Donation_ID) }}" class="btn btn-sm btn-outline" title="View Details">
+                                        View
+                                    </a>
+                                    <a href="{{ url_for('donation_certificate', donation_id=d.Donation_ID) }}" class="btn btn-sm" style="background: rgba(212, 175, 55, 0.15); color: #8A6D00; border: 1px solid #D4AF37;" title="Certificate of Appreciation" target="_blank">
+                                        <i class="fa-solid fa-award"></i>
+                                    </a>
+                                    {% if session.get('user_type') == 'NGO/Receiver' and d.Status == 'Available' %}
+                                        <button class="btn btn-sm btn-accent" onclick="openClaimModal({{ d.Donation_ID }}, '{{ d.Food_Type|escape }}', '{{ d.Quantity }} {{ d.Unit }}')">
+                                            Claim
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 3rem; color: #CBD5E1; margin-bottom: 0.75rem;"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <h3>No Donations Match Your Filter</h3>
+            <p style="margin-top: 0.35rem;">Try selecting a different food category or clearing the search terms.</p>
+            <a href="{{ url_for('donations_list') }}" class="btn btn-outline" style="margin-top: 1rem;">Reset All Filters</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal: Claim Donation & Schedule Pickup (For NGOs) -->
+<div id="claimModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-calendar-check"></i> Claim Donation & Schedule Logistics</h3>
+            <button class="modal-close" onclick="closeModal('claimModal')">&times;</button>
+        </div>
+        <form id="claimForm" action="" method="POST">
+            <div class="modal-body">
+                <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 1.25rem;">
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Claiming Consignment:</div>
+                    <div id="claim-food-title" style="font-size: 1.05rem; font-weight: 700; color: var(--dark);"></div>
+                    <div id="claim-food-qty" style="font-size: 0.9rem; color: var(--primary); font-weight: 600;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Scheduled Pickup Date & Time</label>
+                    <input type="datetime-local" name="pickup_time" class="form-control" required>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Vehicle Registration Number</label>
+                        <input type="text" name="vehicle_no" class="form-control" placeholder="e.g. KA-04-MB-4412" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Driver / Transport Incharge Name</label>
+                        <input type="text" name="driver_name" class="form-control" placeholder="e.g. Sunil Jadhav" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Routing Collection Center (Optional)</label>
+                    <select name="center_id" class="form-control">
+                        <option value="">Direct Delivery to NGO Facility</option>
+                        {% for c in centers %}
+                            <option value="{{ c.Center_ID }}">{{ c.Center_Name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Dispatch Notes</label>
+                    <textarea name="notes" class="form-control" rows="2" placeholder="e.g. Temperature insulated van dispatch."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('claimModal')">Cancel</button>
+                <button type="submit" class="btn btn-accent"><i class="fa-solid fa-lock"></i> Confirm Claim</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openClaimModal(donationId, foodType, qty) {
+    document.getElementById('claimForm').action = "/donations/" + donationId + "/claim";
+    document.getElementById('claim-food-title').textContent = foodType;
+    document.getElementById('claim-food-qty').textContent = "Quantity: " + qty;
+    openModal('claimModal');
+}
+</script>
+{% endblock %}

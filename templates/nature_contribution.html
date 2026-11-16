@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+
+{% block title %}Contribution in Nature & Environmental Impact - Smart Food Rescue{% endblock %}
+
+{% block content %}
+<!-- Contribution in Nature Section -->
+<section class="nature-section" id="nature-contribution">
+    <!-- Header -->
+    <div class="nature-header">
+        <span class="nature-badge"><i class="fa-solid fa-earth-americas"></i> Environmental Impact & Bio-Economy</span>
+        <h1 class="nature-title">Contribution in Nature: How Food Donation & Management Heals the Planet</h1>
+        <p class="nature-subtitle">
+            Food loss and waste is responsible for <strong>8–10% of global greenhouse gas emissions</strong> and consumes <strong>21% of all agricultural fresh water</strong>. 
+            By systematically rescuing edible surplus for human nutrition and valorizing inedible organic scraps into rich microbial compost and renewable bio-energy, 
+            our platform transforms a municipal environmental crisis into a circular ecological solution.
+        </p>
+    </div>
+
+    <!-- Live Ecological Counter from Live Database -->
+    <div class="grid-4" style="margin-bottom: 2.5rem;">
+        <div class="stat-card" style="border-top: 3px solid #0284C7;">
+            <div class="stat-icon blue">
+                <i class="fa-solid fa-cloud-arrow-down"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ eco_metrics.co2_abated }} kg</div>
+                <div class="stat-label">CO₂e Emissions Prevented</div>
+            </div>
+        </div>
+
+        <div class="stat-card" style="border-top: 3px solid #0D9488;">
+            <div class="stat-icon green">
+                <i class="fa-solid fa-droplet"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ "{:,}".format(eco_metrics.water_saved) }} L</div>
+                <div class="stat-label">Freshwater Conserved</div>
+            </div>
+        </div>
+
+        <div class="stat-card" style="border-top: 3px solid #16A34A;">
+            <div class="stat-icon green">
+                <i class="fa-solid fa-tree"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ eco_metrics.trees_equiv }}</div>
+                <div class="stat-label">Tree-Year Carbon Equivalent</div>
+            </div>
+        </div>
+
+        <div class="stat-card" style="border-top: 3px solid #D97706;">
+            <div class="stat-icon orange">
+                <i class="fa-solid fa-seedling"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ eco_metrics.compost_kg }} kg</div>
+                <div class="stat-label">Organic Humus Potential</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 Core Ecological Pillars of Contribution -->
+    <div class="nature-pillars-grid">
+        <!-- Pillar 1: Methane Abatement -->
+        <div class="nature-pillar-card">
+            <div class="nature-card-icon-wrap icon-wrap-methane">
+                <i class="fa-solid fa-cloud-arrow-down"></i>
+            </div>
+            <h3 class="nature-pillar-title">1. Methane (CH₄) Abatement at Landfills</h3>
+            <span class="nature-pillar-stat"><i class="fa-solid fa-bolt"></i> 86x More Potent Than CO₂</span>
+            <p class="nature-pillar-desc">
+                When organic food waste is buried in landfills, anaerobic decomposition generates concentrated methane ($CH_4$) gas, 
+                which traps 86 times more atmospheric heat than $CO_2$ over a 20-year timescale. Diverting surplus food stops landfill 
+                methane production at the source.
+            </p>
+            <div class="nature-pillar-footer">
+                <i class="fa-solid fa-shield-halved" style="color: #0284C7;"></i> Prevents smog & urban atmospheric warming
+            </div>
+        </div>
+
+        <!-- Pillar 2: Water Conservation -->
+        <div class="nature-pillar-card">
+            <div class="nature-card-icon-wrap icon-wrap-water">
+                <i class="fa-solid fa-droplet"></i>
+            </div>
+            <h3 class="nature-pillar-title">2. Conserving Embedded Freshwater</h3>
+            <span class="nature-pillar-stat"><i class="fa-solid fa-water"></i> ~650 Liters Saved / Kg Rescued</span>
+            <p class="nature-pillar-desc">
+                Agriculture accounts for 70% of global freshwater withdrawals. When cooked meals and farm produce are discarded, 
+                all the embedded water used for crop irrigation, processing, and transportation is wasted. Rescuing 1 kg of food saves 
+                hundreds of liters of vital groundwater.
+            </p>
+            <div class="nature-pillar-footer">
+                <i class="fa-solid fa-faucet-drip" style="color: #0D9488;"></i> Recharges depleted underground aquifers
+            </div>
+        </div>
+
+        <!-- Pillar 3: Biodiversity & Land Protection -->
+        <div class="nature-pillar-card">
+            <div class="nature-card-icon-wrap icon-wrap-forest">
+                <i class="fa-solid fa-tree"></i>
+            </div>
+            <h3 class="nature-pillar-title">3. Biodiversity & Sparing Arable Land</h3>
+            <span class="nature-pillar-stat"><i class="fa-solid fa-mountain-sun"></i> 1.4B Hectares Spared Globally</span>
+            <p class="nature-pillar-desc">
+                Unconsumed food occupies 28% of the world's total agricultural land surface. By efficiently matching food surplus with 
+                hungry communities, we reduce the demand to clear wild forests, grasslands, and wetlands for additional agricultural land, 
+                protecting wildlife and pollinators.
+            </p>
+            <div class="nature-pillar-footer">
+                <i class="fa-solid fa-leaf" style="color: #16A34A;"></i> Halts deforestation and biodiversity loss
+            </div>
+        </div>
+
+        <!-- Pillar 4: Restoring Living Soil Biology -->
+        <div class="nature-pillar-card">
+            <div class="nature-card-icon-wrap icon-wrap-compost">
+                <i class="fa-solid fa-seedling"></i>
+            </div>
+            <h3 class="nature-pillar-title">4. Restoring Living Topsoil (Compost)</h3>
+            <span class="nature-pillar-stat"><i class="fa-solid fa-recycle"></i> 100% Organic Soil Humus</span>
+            <p class="nature-pillar-desc">
+                Inedible food scraps segregated at municipal collection centers undergo microbial aerobic composting. This process creates 
+                nutrient-dense biological humus containing vital Nitrogen (N), Phosphorus (P), and Potassium (K), restoring degraded topsoils 
+                without synthetic chemicals.
+            </p>
+            <div class="nature-pillar-footer">
+                <i class="fa-solid fa-plant-wilt" style="color: #D97706;"></i> Reverses topsoil erosion & desertification
+            </div>
+        </div>
+
+        <!-- Pillar 5: Clean Renewable Bio-Energy -->
+        <div class="nature-pillar-card">
+            <div class="nature-card-icon-wrap icon-wrap-energy">
+                <i class="fa-solid fa-bolt"></i>
+            </div>
+            <h3 class="nature-pillar-title">5. Clean Renewable Bio-Energy (Bio-CNG)</h3>
+            <span class="nature-pillar-stat"><i class="fa-solid fa-fire"></i> Displacing Fossil Fuels</span>
+            <p class="nature-pillar-desc">
+                High-moisture organic waste processed in anaerobic digestion hubs is transformed into purified biomethane (Bio-CNG) 
+                and bio-slurry. This green fuel powers municipal vehicles and clean thermal cookstoves, reducing urban reliance 
+                on imported fossil fuels and coal.
+            </p>
+            <div class="nature-pillar-footer">
+                <i class="fa-solid fa-charging-station" style="color: #DC2626;"></i> Powers clean municipal circular transport
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Nature Impact Calculator -->
+    <div class="nature-calc-box">
+        <div class="nature-calc-header">
+            <div class="nature-calc-title">
+                <i class="fa-solid fa-calculator" style="color: #52B788;"></i> Interactive Ecological Impact Calculator
+            </div>
+            <span style="font-size: 0.85rem; color: #D8F3DC; background: rgba(255,255,255,0.12); padding: 0.35rem 0.85rem; border-radius: 9999px;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Slide to preview real-world planetary return
+            </span>
+        </div>
+
+        <div class="calc-slider-wrap">
+            <div class="calc-slider-label">
+                <span><i class="fa-solid fa-weight-hanging"></i> Surplus Food Quantity to Rescue:</span>
+                <span id="sliderValueDisplay" style="font-size: 1.3rem; font-weight: 800; color: #52B788;">50 kg</span>
+            </div>
+            <input type="range" min="5" max="500" value="50" step="5" class="calc-slider-input" id="natureSlider" oninput="updateNatureCalc(this.value)">
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94A3B8; margin-top: 0.4rem;">
+                <span>5 kg (Small Kitchen Batch)</span>
+                <span>250 kg (Hotel Buffet)</span>
+                <span>500 kg (Large Wedding / Festival)</span>
+            </div>
+        </div>
+
+        <div class="calc-results-grid">
+            <div class="calc-result-tile">
+                <div class="calc-result-icon" style="color: #52B788;"><i class="fa-solid fa-bowl-food"></i></div>
+                <div class="calc-result-value" id="calcMeals">125</div>
+                <div class="calc-result-unit">Wholesome Meals</div>
+            </div>
+
+            <div class="calc-result-tile">
+                <div class="calc-result-icon" style="color: #38BDF8;"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                <div class="calc-result-value" id="calcCO2">95.0</div>
+                <div class="calc-result-unit">kg CO₂e Diverted</div>
+            </div>
+
+            <div class="calc-result-tile">
+                <div class="calc-result-icon" style="color: #2DD4BF;"><i class="fa-solid fa-droplet"></i></div>
+                <div class="calc-result-value" id="calcWater">32,500</div>
+                <div class="calc-result-unit">Liters Water Saved</div>
+            </div>
+
+            <div class="calc-result-tile">
+                <div class="calc-result-icon" style="color: #4ADE80;"><i class="fa-solid fa-tree"></i></div>
+                <div class="calc-result-value" id="calcTrees">4.4</div>
+                <div class="calc-result-unit">Tree-Years Equiv</div>
+            </div>
+
+            <div class="calc-result-tile">
+                <div class="calc-result-icon" style="color: #FBBF24;"><i class="fa-solid fa-seedling"></i></div>
+                <div class="calc-result-value" id="calcCompost">17.5</div>
+                <div class="calc-result-unit">kg Living Humus</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Linear Waste Model vs. Circular Regenerative Model Comparison -->
+    <div class="nature-comparison-wrap">
+        <!-- Linear -->
+        <div class="comp-box comp-linear">
+            <div class="comp-title">
+                <i class="fa-solid fa-triangle-exclamation"></i> Traditional Linear Model (High Planetary Harm)
+            </div>
+            <ul class="comp-flow-list">
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">1</span>
+                    <div><strong>Excess Resource Extraction:</strong> High water pumping, chemical fertilizers, and heavy fossil fuel usage.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">2</span>
+                    <div><strong>Unchecked Surplus Disposal:</strong> Edible leftover food dumped together with mixed municipal trash.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">3</span>
+                    <div><strong>Anaerobic Landfill Decay:</strong> Deep burial blocks oxygen, triggering concentrated methane gas eruptions.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">4</span>
+                    <div><strong>Leachate Ground Contamination:</strong> Acidic decomposing liquids seep into groundwater aquifers and streams.</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Circular -->
+        <div class="comp-box comp-circular">
+            <div class="comp-title">
+                <i class="fa-solid fa-circle-check"></i> Smart Food Management Model (Restorative to Nature)
+            </div>
+            <ul class="comp-flow-list">
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">1</span>
+                    <div><strong>Real-Time Food Rescue:</strong> Edible surplus is claimed by certified NGOs within hours, feeding families.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">2</span>
+                    <div><strong>Clean Organic Segregation:</strong> Inedible food scraps routed to dedicated processing collection centers.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">3</span>
+                    <div><strong>Aerobic Microbial Composting:</strong> Returns vital nitrogen, phosphorus, and carbon directly to depleted topsoil.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">4</span>
+                    <div><strong>Biogas Clean Energy:</strong> Anaerobic digesters capture biomethane to generate clean power and Bio-CNG.</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- UN Sustainable Development Goals (SDG) Alignment Strip -->
+    <div class="sdg-alignment-strip">
+        <div class="sdg-tagline">
+            <i class="fa-solid fa-award" style="color: #D4AF37; font-size: 1.25rem;"></i>
+            <span>Aligned with United Nations Sustainable Development Goals (UN SDGs)</span>
+        </div>
+        <div class="sdg-pills">
+            <span class="sdg-pill sdg-2"><i class="fa-solid fa-bowl-food"></i> SDG 2: Zero Hunger</span>
+            <span class="sdg-pill sdg-12"><i class="fa-solid fa-recycle"></i> SDG 12.3: Halve Food Waste</span>
+            <span class="sdg-pill sdg-13"><i class="fa-solid fa-cloud"></i> SDG 13: Climate Action</span>
+            <span class="sdg-pill sdg-15"><i class="fa-solid fa-tree"></i> SDG 15: Life on Land</span>
+        </div>
+    </div>
+</section>
+
+<!-- Interactive Calculator Script -->
+<script>
+function updateNatureCalc(val) {
+    const kg = parseFloat(val);
+    document.getElementById('sliderValueDisplay').textContent = kg + ' kg';
+    
+    // Impact calculations
+    const meals = Math.round(kg * 2.5);
+    const co2 = (kg * 1.9).toFixed(1);
+    const water = Math.round(kg * 650);
+    const trees = (parseFloat(co2) / 21.7).toFixed(1);
+    const compost = (kg * 0.35).toFixed(1);
+    
+    document.getElementById('calcMeals').textContent = meals.toLocaleString();
+    document.getElementById('calcCO2').textContent = co2;
+    document.getElementById('calcWater').textContent = water.toLocaleString();
+    document.getElementById('calcTrees').textContent = trees;
+    document.getElementById('calcCompost').textContent = compost;
+}
+</script>
+{% endblock %}

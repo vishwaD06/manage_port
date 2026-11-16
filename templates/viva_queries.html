@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}DBMS Viva Demonstration Console - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <h1 style="font-size: 1.8rem; color: var(--dark);">DBMS Viva Demonstration Console</h1>
+        <p style="color: var(--text-muted);">
+            Interactive examination workbench executing 16 essential SQL operations covering all 9 ER diagram relationships directly against the <code>food_waste_management</code> database.
+        </p>
+    </div>
+    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <a href="{{ url_for('er_diagram_view') }}" class="btn btn-outline" style="border-color: var(--primary); color: var(--primary);">
+            <i class="fa-solid fa-diagram-project"></i> View ER Diagram & Schema
+        </a>
+    </div>
+</div>
+
+<!-- Query Selection Strip -->
+<div class="card" style="margin: 1.5rem 0 1rem; padding: 1.25rem;">
+    <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--primary);">
+        <i class="fa-solid fa-terminal"></i> Select an SQL Query to Execute Live:
+    </div>
+    <div>
+        {% for q in catalog %}
+            <a href="{{ url_for('viva_queries', q=q.id) }}" class="query-chip {% if selected_query and selected_query.id == q.id %}active{% endif %}">
+                Q{{ q.id }}: {{ q.concept }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+{% if selected_query %}
+    <!-- Query Details Card -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <span class="badge badge-initiated">{{ selected_query.concept }}</span>
+                <h2 style="font-size: 1.35rem; color: var(--dark); margin-top: 0.35rem;">{{ selected_query.title }}</h2>
+                <p style="font-size: 0.9rem; color: var(--text-muted);">{{ selected_query.desc }}</p>
+            </div>
+            <a href="{{ url_for('viva_queries', q=selected_query.id) }}" class="btn btn-sm btn-accent">
+                <i class="fa-solid fa-rotate-right"></i> Re-execute Query
+            </a>
+        </div>
+
+        <h4 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">SQL Statement Executed:</h4>
+        <pre class="sql-box"><code>{{ selected_query.sql }}</code></pre>
+
+        <h4 style="font-size: 0.9rem; color: var(--text-muted); margin: 1.5rem 0 0.5rem; text-transform: uppercase;">
+            Live Query Result Set ({{ results|length }} rows returned):
+        </h4>
+
+        {% if error_msg %}
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-triangle-exclamation"></i> Execution Error: {{ error_msg }}
+            </div>
+        {% elif results %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            {% for col in query_columns %}
+                                <th>{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in results %}
+                            <tr>
+                                {% for col in query_columns %}
+                                    <td>{{ row[col] if row[col] is not none else 'NULL' }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted); font-style: italic; padding: 1rem 0;">Query executed successfully with 0 matching rows.</p>
+        {% endif %}
+    </div>
+{% else %}
+    <!-- Default Welcome State -->
+    <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+        <div style="font-size: 3rem; color: var(--primary); margin-bottom: 0.75rem;">
+            <i class="fa-solid fa-database"></i>
+        </div>
+        <h2 style="font-size: 1.4rem; color: var(--dark);">Demonstrate SQL Queries Live to Your Evaluator</h2>
+        <p style="color: var(--text-muted); max-width: 650px; margin: 0.5rem auto 1.5rem;">
+            Select any of the 15 queries above to display its technical DBMS explanation, normalized relational logic, exact SQL syntax, and real-time execution results from MySQL.
+        </p>
+        <a href="{{ url_for('viva_queries', q=1) }}" class="btn btn-primary">
+            <i class="fa-solid fa-play"></i> Start with Query 1 (Multi-Table INNER JOIN)
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Recycler Dashboard - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <h1 style="font-size: 1.8rem; color: var(--dark);">Recycler & Bio-Processing Dashboard</h1>
+        <p style="color: var(--text-muted);">
+            Manage municipal collection hubs, record spoiled food triage, and oversee aerobic composting, biogas generation, and packaging recycling.
+        </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <button class="btn btn-outline" onclick="openModal('logWasteModal')">
+            <i class="fa-solid fa-trash-can"></i> Log Inedible Waste
+        </button>
+        <button class="btn btn-accent" onclick="openModal('newProcessModal')">
+            <i class="fa-solid fa-recycle"></i> Start Conversion Run
+        </button>
+    </div>
+</div>
+
+<!-- Section 1: Collection Center Utilization Meters -->
+<div class="card" style="margin-top: 1.5rem;">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-warehouse" style="color: var(--primary);"></i> Collection Hubs Live Capacity Utilization
+        </div>
+        <a href="{{ url_for('collection_centers_list') }}" class="btn btn-sm btn-outline">All Centers</a>
+    </div>
+
+    <div class="grid-2">
+        {% for c in centers %}
+            <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <div>
+                        <strong style="font-size: 1.05rem; color: var(--dark);">{{ c.Center_Name }}</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-solid fa-tag"></i> {{ c.Center_Type }}</div>
+                    </div>
+                    <span class="badge {% if c.Utilization_Percentage >= 80 %}badge-expired{% elif c.Utilization_Percentage >= 50 %}badge-scheduled{% else %}badge-available{% endif %}">
+                        {{ c.Utilization_Percentage }}% Full
+                    </span>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill {% if c.Utilization_Percentage >= 80 %}danger{% elif c.Utilization_Percentage >= 50 %}warning{% endif %}" style="width: {{ c.Utilization_Percentage }}%;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-muted); margin-top: 0.5rem;">
+                    <span>Current Load: <strong>{{ c.Current_Occupancy }} kg</strong></span>
+                    <span>Max Capacity: <strong>{{ c.Capacity }} kg</strong></span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Section 2: Recorded Inedible Waste Items -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-dumpster" style="color: var(--accent-orange);"></i> Inedible / Spoiled Waste Inventory
+        </div>
+        <a href="{{ url_for('waste_items_list') }}" class="btn btn-sm btn-outline">View Full Inventory</a>
+    </div>
+
+    {% if waste_items %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Waste ID</th>
+                        <th>Center</th>
+                        <th>Waste Category</th>
+                        <th>Quantity</th>
+                        <th>Description</th>
+                        <th>Logged Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in waste_items %}
+                        <tr>
+                            <td>#{{ w.Waste_ID }}</td>
+                            <td><strong>{{ w.Center_Name }}</strong></td>
+                            <td><span class="badge badge-initiated">{{ w.Waste_Type }}</span></td>
+                            <td><strong>{{ w.Quantity }} {{ w.Unit }}</strong></td>
+                            <td><small>{{ w.Description }}</small></td>
+                            <td>{{ w.Recorded_Date|datetime_format }}</td>
+                            <td>
+                                {% if w.Status == 'Processed' %}
+                                    <span class="badge badge-completed">{{ w.Status }}</span>
+                                {% elif w.Status == 'In Processing' %}
+                                    <span class="badge badge-scheduled">{{ w.Status }}</span>
+                                {% else %}
+                                    <span class="badge badge-pending">{{ w.Status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No waste items logged yet.</p>
+    {% endif %}
+</div>
+
+<!-- Section 3: Processing & Conversion History -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-leaf" style="color: var(--badge-green);"></i> Eco-Conversion & Resource Recovery Runs
+        </div>
+        <a href="{{ url_for('processes_list') }}" class="btn btn-sm btn-outline">All Conversion Records</a>
+    </div>
+
+    {% if processes %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Process ID</th>
+                        <th>Center</th>
+                        <th>Technology</th>
+                        <th>Waste Input</th>
+                        <th>Resource Yield Output</th>
+                        <th>Remarks & Chemical Parameters</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in processes %}
+                        <tr>
+                            <td>#{{ p.Process_ID }}</td>
+                            <td>{{ p.Center_Name }}</td>
+                            <td><strong>{{ p.Process_Type }}</strong></td>
+                            <td>{{ p.Input_Quantity }} kg</td>
+                            <td><strong style="color: var(--badge-green);">{{ p.Output_Quantity }} kg/units</strong></td>
+                            <td><small>{{ p.Remarks }}</small></td>
+                            <td>
+                                {% if p.Status == 'Completed' %}
+                                    <span class="badge badge-completed">Completed</span>
+                                {% else %}
+                                    <span class="badge badge-scheduled">{{ p.Status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No processing activities recorded yet.</p>
+    {% endif %}
+</div>
+
+<!-- Modal: Log Inedible Waste Item -->
+<div id="logWasteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-dumpster"></i> Log Inedible / Spoiled Waste Batch</h3>
+            <button class="modal-close" onclick="closeModal('logWasteModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('log_waste_item') }}" method="POST">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Destination Collection Center</label>
+                    <select name="center_id" class="form-control" required>
+                        {% for c in all_centers %}
+                            <option value="{{ c.Center_ID }}">{{ c.Center_Name }} (Occupancy: {{ c.Current_Occupancy }}/{{ c.Capacity }} kg)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Waste Category</label>
+                        <select name="waste_type" class="form-control" required>
+                            <option value="Expired Food Scraps">Expired Food Scraps</option>
+                            <option value="Organic Kitchen Waste">Organic Kitchen Waste</option>
+                            <option value="Spoiled Produce">Spoiled Produce</option>
+                            <option value="Packaging / Inorganics">Packaging / Inorganics</option>
+                            <option value="Biomass Residue">Biomass Residue</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Quantity (kg)</label>
+                        <input type="number" step="0.5" name="quantity" class="form-control" placeholder="e.g. 150" required>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Source & Batch Description</label>
+                    <textarea name="description" class="form-control" rows="2" placeholder="e.g. Discarded market vegetables with minor fungal damage, suitable for anaerobic digestion." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('logWasteModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Record Waste Entry</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Record Conversion Run -->
+<div id="newProcessModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-recycle"></i> Record Conversion Run (Compost / Biogas / Recycling)</h3>
+            <button class="modal-close" onclick="closeModal('newProcessModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('new_process') }}" method="POST">
+            <div class="modal-body">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Processing Center</label>
+                        <select name="center_id" class="form-control" required>
+                            {% for c in all_centers %}
+                                <option value="{{ c.Center_ID }}">{{ c.Center_Name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Process Type</label>
+                        <select name="process_type" class="form-control" required>
+                            <option value="Composting">Aerobic Composting</option>
+                            <option value="Biogas">Anaerobic Biogas Digestion</option>
+                            <option value="Recycling">Packaging / Material Recycling</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Input Waste Quantity (kg)</label>
+                        <input type="number" step="0.5" name="input_quantity" class="form-control" placeholder="e.g. 300" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Output Useful Yield (kg or m³)</label>
+                        <input type="number" step="0.5" name="output_quantity" class="form-control" placeholder="e.g. 90" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control">
+                        <option value="Completed" selected>Completed</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Initiated">Initiated</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Technical Remarks & Output Description</label>
+                    <textarea name="remarks" class="form-control" rows="2" placeholder="e.g. High temperature windrow finished with pH 6.8 vermicompost output."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('newProcessModal')">Cancel</button>
+                <button type="submit" class="btn btn-accent"><i class="fa-solid fa-play"></i> Log Processing Activity</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

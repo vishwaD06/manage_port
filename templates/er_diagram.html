@@ -1,0 +1,525 @@
+{% extends 'base.html' %}
+
+{% block title %}ER Diagram & Relational Schema - Smart Food Waste Reduction & Waste Management System{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(82, 183, 136, 0.15); color: var(--primary-light); font-size: 0.8rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: var(--radius-full); text-transform: uppercase; margin-bottom: 0.5rem;">
+            <i class="fa-solid fa-graduation-cap"></i> Complete Conceptual & Relational Architecture
+        </div>
+        <h1 style="font-size: 2rem; color: var(--dark); font-family: 'Outfit', sans-serif;">
+            SMART FOOD WASTE REDUCTION AND WASTE MANAGEMENT SYSTEM
+        </h1>
+        <p style="color: var(--text-muted); font-size: 1rem; margin-top: 0.2rem;">
+            Full Conceptual Coverage &mdash; All 9 Entities, 9 Relationships, Primary/Foreign Keys, and Cardinality Rules.
+        </p>
+    </div>
+    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+        <a href="{{ url_for('static', filename='images/er_diagram.png') }}" target="_blank" class="btn btn-outline" title="Open Raw Image">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Raw Resolution
+        </a>
+        <a href="{{ url_for('static', filename='images/er_diagram.png') }}" download="ER_Diagram_Food_Waste_Management.png" class="btn btn-primary">
+            <i class="fa-solid fa-download"></i> Download Diagram
+        </a>
+    </div>
+</div>
+
+<!-- Interactive ER Diagram Viewer Card -->
+<div class="card" style="margin-top: 1.5rem; padding: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+            <div style="font-weight: 800; font-size: 1.15rem; color: var(--dark); display: flex; align-items: center; gap: 0.5rem; font-family: 'Outfit', sans-serif;">
+                <i class="fa-solid fa-diagram-project" style="color: var(--primary);"></i> Canonical ER Diagram
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">Chen Notation: Rectangles (Entities), Diamonds (Relationships), Ovals (Attributes)</div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button type="button" class="btn btn-sm btn-outline" id="zoomInBtn" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i> Zoom In</button>
+            <button type="button" class="btn btn-sm btn-outline" id="zoomOutBtn" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i> Zoom Out</button>
+            <button type="button" class="btn btn-sm btn-outline" id="zoomResetBtn" title="Reset Zoom"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+        </div>
+    </div>
+
+    <!-- Image Container with Zoom & Scroll -->
+    <div id="diagramContainer" style="overflow: auto; max-height: 720px; background: #FFFFFF; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 1rem; text-align: center; cursor: grab; position: relative;">
+        <img id="erDiagramImg" src="{{ url_for('static', filename='images/er_diagram.png') }}" alt="Smart Food Waste Reduction and Waste Management System ER Diagram" style="max-width: 100%; height: auto; transition: transform 0.2s ease; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);">
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: var(--text-muted); margin-top: 0.75rem;">
+        <span><i class="fa-solid fa-circle-info"></i> Click buttons or drag mouse inside container to pan and inspect individual entities.</span>
+        <span>Resolution: 2048 &times; 1365 px</span>
+    </div>
+</div>
+
+<!-- SECTION 1: LEGEND & NOTATION SPECIFICATION -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-shapes" style="color: var(--primary);"></i> Part 1: Diagram Legend & Conceptual Notation
+        </div>
+        <span class="badge badge-available">Standard Chen Notation</span>
+    </div>
+
+    <div class="grid-4" style="font-size: 0.9rem;">
+        <div style="padding: 1.15rem; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <div style="width: 70px; height: 32px; background: #D1E7DD; border: 2px solid #2D6A4F; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #1B4332; margin-bottom: 0.65rem;">ENTITY</div>
+            <strong style="color: var(--dark);">Rectangular Nodes:</strong>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">
+                Represents physical or logical tables: <code>USER</code>, <code>DONATION</code>, <code>PICKUP</code>, <code>COLLECTION CENTER</code>, <code>NGO / RECEIVER</code>, <code>REVIEW</code>, <code>WASTE ITEM</code>, <code>PROCESS</code>, <code>REPORT</code>.
+            </p>
+        </div>
+
+        <div style="padding: 1.15rem; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <div style="width: 36px; height: 36px; background: #FFE8D6; border: 2px solid #E76F51; transform: rotate(45deg); margin: 0.2rem auto 0.8rem;"></div>
+            <strong style="color: var(--dark);">Diamond Nodes:</strong>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">
+                Represents relational associations: <code>MAKES</code>, <code>SCHEDULED FOR</code>, <code>HANDLED BY</code>, <code>DONATED BY</code>, <code>DELIVERS TO</code>, <code>RECORDED AT</code>, <code>PROCESSED IN</code>, <code>GENERATES</code>, <code>REVIEWS</code>.
+            </p>
+        </div>
+
+        <div style="padding: 1.15rem; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <div style="width: 70px; height: 30px; background: #FFFFFF; border: 1.5px solid #6C757D; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.76rem; font-weight: 600; color: #495057; margin-bottom: 0.65rem;">ATTR</div>
+            <strong style="color: var(--dark);">Oval Nodes:</strong>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">
+                Entity attributes. Ovals marked with <strong>(PK)</strong> are primary identifiers; ovals marked with <strong>(FK)</strong> denote foreign keys referencing parent tables.
+            </p>
+        </div>
+
+        <div style="padding: 1.15rem; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <div style="display: flex; gap: 0.4rem; margin-bottom: 0.65rem;">
+                <span style="padding: 0.25rem 0.6rem; background: #E8F5E9; border: 1px dashed #2E7D32; border-radius: 4px; font-weight: 700; color: #2E7D32;">1</span>
+                <span style="padding: 0.25rem 0.6rem; background: #E8F5E9; border: 1px dashed #2E7D32; border-radius: 4px; font-weight: 700; color: #2E7D32;">N</span>
+            </div>
+            <strong style="color: var(--dark);">Cardinality Ratios:</strong>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">
+                <strong>1 : N</strong> (One-to-Many), <strong>N : 1</strong> (Many-to-One), and <strong>1 : 1</strong> structural constraints enforcing relational integrity without data redundancy.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 2: ALL 9 RELATIONSHIPS FULLY COVERED -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-link" style="color: var(--accent-orange);"></i> Part 2: All 9 Relationships Fully Covered
+        </div>
+        <a href="{{ url_for('viva_queries') }}" class="btn btn-sm btn-primary">
+            <i class="fa-solid fa-terminal"></i> Execute Verification Queries in Viva Console
+        </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.25rem;">
+        <!-- Rel 1: MAKES -->
+        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; border-top: 4px solid var(--primary);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge badge-available">1 : N Cardinality</span>
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--primary);">RELATION #1</span>
+            </div>
+            <h4 style="font-size: 1.1rem; color: var(--dark); margin-bottom: 0.35rem;">
+                <code>USER</code> &mdash; &lt;MAKES&gt; &mdash; <code>DONATION</code>
+            </h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                <strong>Rule:</strong> User makes many Donations. Commercial food donors list batches of surplus food items.
+            </p>
+            <div style="font-size: 0.8rem; background: #F8FAFC; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <strong>Foreign Key:</strong> <code>DONATION.User_ID</code> &rarr; <code>USER.User_ID</code><br>
+                <strong>SQL Join:</strong> Query #1, Query #3 in Viva Console
+            </div>
+        </div>
+
+        <!-- Rel 2: SCHEDULED FOR -->
+        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; border-top: 4px solid var(--accent-blue);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge badge-pending">1 : N / 1 : 1 Cardinality</span>
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--accent-blue);">RELATION #2</span>
+            </div>
+            <h4 style="font-size: 1.1rem; color: var(--dark); margin-bottom: 0.35rem;">
+                <code>DONATION</code> &mdash; &lt;SCHEDULED FOR&gt; &mdash; <code>PICKUP</code>
+            </h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                <strong>Rule:</strong> Donation is scheduled for many Pickups. Dispatch record logs vehicle, driver, and transit time.
+            </p>
+            <div style="font-size: 0.8rem; background: #F8FAFC; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <strong>Foreign Key:</strong> <code>PICKUP.Donation_ID</code> &rarr; <code>DONATION.Donation_ID</code> (UNIQUE)<br>
+                <strong>SQL Join:</strong> Query #3 in Viva Console
+            </div>
+        </div>
+
+        <!-- Rel 3: HANDLED BY -->
+        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; border-top: 4px solid var(--badge-amber);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge badge-scheduled">N : 1 Cardinality</span>
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--badge-amber);">RELATION #3</span>
+            </div>
+            <h4 style="font-size: 1.1rem; color: var(--dark); margin-bottom: 0.35rem;">
+                <code>PICKUP</code> &mdash; &lt;HANDLED BY&gt; &mdash; <code>COLLECTION CENTER</code>
+            </h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                <strong>Rule:</strong> Pickup is handled by one Collection Center. Municipal hubs coordinate routing and drivers.
+            </p>
+            <div style="font-size: 0.8rem; background: #F8FAFC; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <strong>Foreign Key:</strong> <code>PICKUP.Center_ID</code> &rarr; <code>COLLECTION_CENTER.Center_ID</code><br>
+                <strong>SQL Join:</strong> Query #3, Query #12 in Viva Console
+            </div>
+        </div>
+
+        <!-- Rel 4: DONATED BY -->
+        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; border-top: 4px solid var(--badge-green);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge badge-available">N : 1 Cardinality</span>
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--badge-green);">RELATION #4</span>
+            </div>
+            <h4 style="font-size: 1.1rem; color: var(--dark); margin-bottom: 0.35rem;">
+                <code>DONATION</code> &mdash; &lt;DONATED BY&gt; &mdash; <code>NGO / RECEIVER</code>
+            </h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                <strong>Rule:</strong> Donation is donated by / claimed by one NGO/Receiver. Certified beneficiaries claim surplus items atomically.
+            </p>
+            <div style="font-size: 0.8rem; background: #F8FAFC; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <strong>Foreign Key:</strong> <code>DONATION.Claimed_By_NGO_ID</code> &rarr; <code>NGO_RECEIVER.NGO_ID</code><br>
+                <strong>SQL Join:</strong> Query #2, Query #7 in Viva Console
+            </div>
+        </div>
+
+        <!-- Rel 5: DELIVERS TO -->
+        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; border-top: 4px solid var(--accent-purple);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge badge-initiated">N : 1 Cardinality</span>
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--accent-purple);">RELATION #5</span>
+            </div>
+            <h4 style="font-size: 1.1rem; color: var(--dark); margin-bottom: 0.35rem;">
+                <code>NGO / RECEIVER</code> &mdash; &lt;DELIVERS TO&gt; &mdash; <code>COLLECTION CENTER</code>
+            </h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                <strong>Rule:</strong> NGO/Receiver delivers collected items to one Collection Center for triage, quality inspection, and secondary distribution.
+            </p>
+            <div style="font-size: 0.8rem; background: #F8FAFC; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <strong>Foreign Key:</strong> <code>NGO_RECEIVER.Delivers_To_Center_ID</code> &rarr; <code>COLLECTION_CENTER.Center_ID</code><br>
+                <strong>Live View:</strong> <a href="{{ url_for('ngos_list') }}">Partner NGOs Directory</a>
+            </div>
+        </div>
+
+        <!-- Rel 6: RECORDED AT -->
+        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; border-top: 4px solid var(--accent-orange);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge badge-scheduled">N : 1 Cardinality</span>
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--accent-orange);">RELATION #6</span>
+            </div>
+            <h4 style="font-size: 1.1rem; color: var(--dark); margin-bottom: 0.35rem;">
+                <code>WASTE ITEM</code> &mdash; &lt;RECORDED AT&gt; &mdash; <code>COLLECTION CENTER</code>
+            </h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                <strong>Rule:</strong> Waste Items are recorded at a Collection Center. Inedible food scraps, spoiled produce, and biomass are logged.
+            </p>
+            <div style="font-size: 0.8rem; background: #F8FAFC; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <strong>Foreign Key:</strong> <code>WASTE_ITEM.Center_ID</code> &rarr; <code>COLLECTION_CENTER.Center_ID</code><br>
+                <strong>SQL Join:</strong> Query #4 in Viva Console
+            </div>
+        </div>
+
+        <!-- Rel 7: PROCESSED IN -->
+        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; border-top: 4px solid var(--primary-light);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge badge-available">1 : N Cardinality</span>
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--primary-light);">RELATION #7</span>
+            </div>
+            <h4 style="font-size: 1.1rem; color: var(--dark); margin-bottom: 0.35rem;">
+                <code>COLLECTION CENTER</code> &mdash; &lt;PROCESSED IN&gt; &mdash; <code>PROCESS</code>
+            </h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                <strong>Rule:</strong> Collection Center processes waste in many Processes. Composting, biogas generation, and material recycling cycles.
+            </p>
+            <div style="font-size: 0.8rem; background: #F8FAFC; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <strong>Foreign Key:</strong> <code>PROCESS.Center_ID</code> &rarr; <code>COLLECTION_CENTER.Center_ID</code><br>
+                <strong>SQL Join:</strong> Query #11 in Viva Console
+            </div>
+        </div>
+
+        <!-- Rel 8: GENERATES -->
+        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; border-top: 4px solid var(--accent-blue);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge badge-pending">1 : N Cardinality</span>
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--accent-blue);">RELATION #8</span>
+            </div>
+            <h4 style="font-size: 1.1rem; color: var(--dark); margin-bottom: 0.35rem;">
+                <code>COLLECTION CENTER</code> &mdash; &lt;GENERATES&gt; &mdash; <code>REPORT</code>
+            </h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                <strong>Rule:</strong> Collection Center generates many Reports. Daily logs, monthly summaries, and annual ecological diversion audits.
+            </p>
+            <div style="font-size: 0.8rem; background: #F8FAFC; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <strong>Foreign Key:</strong> <code>REPORT.Center_ID</code> &rarr; <code>COLLECTION_CENTER.Center_ID</code><br>
+                <strong>Live View:</strong> <a href="{{ url_for('reports_page') }}">Analytics & Reports Portal</a>
+            </div>
+        </div>
+
+        <!-- Rel 9: REVIEWS -->
+        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; border-top: 4px solid var(--badge-amber);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge badge-scheduled">1 : N Cardinality</span>
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--badge-amber);">RELATION #9</span>
+            </div>
+            <h4 style="font-size: 1.1rem; color: var(--dark); margin-bottom: 0.35rem;">
+                <code>USER</code> &mdash; &lt;REVIEWS&gt; &mdash; <code>REVIEW</code>
+            </h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                <strong>Rule:</strong> User can give many Reviews. Beneficiaries evaluate completed food donations for hygiene, taste, and safety.
+            </p>
+            <div style="font-size: 0.8rem; background: #F8FAFC; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <strong>Foreign Key:</strong> <code>REVIEW.User_ID</code> &rarr; <code>USER.User_ID</code> (and <code>REVIEW.Donation_ID</code>)<br>
+                <strong>Live View:</strong> <a href="{{ url_for('reviews_list') }}">Reviews & Trust Stream</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 3: ALL 9 ENTITIES & ATTRIBUTES FROM DIAGRAM -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-database" style="color: var(--primary);"></i> Part 3: All 9 Entities & Full Attribute Breakdown
+        </div>
+        <span class="badge badge-available">3NF Normalized Relational Tables</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 170px;">Entity</th>
+                    <th style="width: 140px;">Primary Key (PK)</th>
+                    <th style="width: 220px;">Foreign Keys (FK)</th>
+                    <th>Attributes (from Diagram Ovals)</th>
+                    <th style="width: 130px;">Live View</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 1. USER -->
+                <tr>
+                    <td><strong>1. USER</strong></td>
+                    <td><code>User_ID (PK)</code></td>
+                    <td><em>None (Root)</em></td>
+                    <td>
+                        <code>Name</code>, <code>Phone</code>, <code>Email</code> (UQ), <code>Password</code>, <code>Address</code>, 
+                        <strong><code>User_Type</code></strong> <em>(Donor / NGO / Recycler / Admin)</em>, <code>Date_Joined</code>
+                    </td>
+                    <td><a href="{{ url_for('login') }}" class="btn btn-sm btn-outline">Auth Hub</a></td>
+                </tr>
+
+                <!-- 2. DONATION -->
+                <tr>
+                    <td><strong>2. DONATION</strong></td>
+                    <td><code>Donation_ID (PK)</code></td>
+                    <td>
+                        <code>User_ID (FK)</code> &rarr; USER<br>
+                        <code>Claimed_By_NGO_ID (FK)</code> &rarr; NGO
+                    </td>
+                    <td>
+                        <code>Food_Type</code>, <code>Quantity</code>, <code>Packaging_Type</code>, <code>Pickup_Address</code>, <code>Donation_Time</code>, 
+                        <strong><code>Status</code></strong> <em>(Available / Picked / Completed)</em>, <code>Prepared_On</code>, <code>Expiry_Date</code>, 
+                        <strong><code>Food_Category</code></strong> <em>(Veg / Non-Veg)</em>
+                    </td>
+                    <td><a href="{{ url_for('donations_list') }}" class="btn btn-sm btn-outline">Listings</a></td>
+                </tr>
+
+                <!-- 3. PICKUP -->
+                <tr>
+                    <td><strong>3. PICKUP</strong></td>
+                    <td><code>Pickup_ID (PK)</code></td>
+                    <td>
+                        <code>Donation_ID (FK)</code> &rarr; DONATION (UQ)<br>
+                        <code>Center_ID (FK)</code> &rarr; CENTER
+                    </td>
+                    <td>
+                        <code>Pickup_Time</code>, <code>Vehicle_No</code>, <code>Driver_Name</code>, <code>Notes</code>, 
+                        <strong><code>Status</code></strong> <em>(Scheduled / Completed)</em>
+                    </td>
+                    <td><a href="{{ url_for('pickups_list') }}" class="btn btn-sm btn-outline">Pickups</a></td>
+                </tr>
+
+                <!-- 4. COLLECTION CENTER -->
+                <tr>
+                    <td><strong>4. COLLECTION CENTER</strong></td>
+                    <td><code>Center_ID (PK)</code></td>
+                    <td><em>None</em></td>
+                    <td>
+                        <code>Center_Name</code>, <code>Address</code>, <code>Contact_No</code>, <code>Capacity</code>, 
+                        <strong><code>Center_Type</code></strong> <em>(NGO / Recycler / Compost Unit)</em>
+                    </td>
+                    <td><a href="{{ url_for('collection_centers_list') }}" class="btn btn-sm btn-outline">Centers Map</a></td>
+                </tr>
+
+                <!-- 5. NGO / RECEIVER -->
+                <tr>
+                    <td><strong>5. NGO / RECEIVER</strong></td>
+                    <td><code>NGO_ID (PK)</code></td>
+                    <td>
+                        <code>User_ID (FK)</code> &rarr; USER (UQ)<br>
+                        <code>Delivers_To_Center_ID (FK)</code> &rarr; CENTER
+                    </td>
+                    <td>
+                        <code>NGO_Name</code>, <code>Address</code>, <code>Contact_No</code>, <code>License_No</code> (UQ), 
+                        <strong><code>NGO_Type</code></strong> <em>(NGO / Charity / Shelter)</em>, <code>Email</code>, <code>Website</code>
+                    </td>
+                    <td><a href="{{ url_for('ngos_list') }}" class="btn btn-sm btn-outline">NGOs Hub</a></td>
+                </tr>
+
+                <!-- 6. REVIEW -->
+                <tr>
+                    <td><strong>6. REVIEW</strong></td>
+                    <td><code>Review_ID (PK)</code></td>
+                    <td>
+                        <code>Donation_ID (FK)</code> &rarr; DONATION<br>
+                        <code>User_ID (FK)</code> &rarr; USER
+                    </td>
+                    <td>
+                        <code>Rating</code> (1..5), <code>Comment</code>, <code>Review_Date</code>
+                    </td>
+                    <td><a href="{{ url_for('reviews_list') }}" class="btn btn-sm btn-outline">Reviews</a></td>
+                </tr>
+
+                <!-- 7. WASTE ITEM -->
+                <tr>
+                    <td><strong>7. WASTE ITEM</strong></td>
+                    <td><code>Waste_ID (PK)</code><br><small style="color: var(--text-muted);">(Diagram: <code>Report_ID</code>)</small></td>
+                    <td>
+                        <code>Center_ID (FK)</code> &rarr; CENTER<br>
+                        <code>Report_ID (FK)</code> &rarr; REPORT
+                    </td>
+                    <td>
+                        <strong><code>Waste_Type</code></strong> <em>(Food / Organic / Inorganic)</em>, <code>Quantity</code>, <code>Unit</code>, <code>Description</code>
+                    </td>
+                    <td><a href="{{ url_for('waste_items_list') }}" class="btn btn-sm btn-outline">Waste</a></td>
+                </tr>
+
+                <!-- 8. PROCESS -->
+                <tr>
+                    <td><strong>8. PROCESS</strong></td>
+                    <td><code>Process_ID (PK)</code></td>
+                    <td>
+                        <code>Center_ID (FK)</code> &rarr; CENTER<br>
+                        <code>Waste_ID (FK)</code> &rarr; WASTE
+                    </td>
+                    <td>
+                        <strong><code>Process_Type</code></strong> <em>(Composting / Recycler / Biogas)</em>, <code>Start_Date</code>, <code>End_Date</code>, <code>Output_Quantity</code>, <code>Remarks</code>
+                    </td>
+                    <td><a href="{{ url_for('processes_list') }}" class="btn btn-sm btn-outline">Processes</a></td>
+                </tr>
+
+                <!-- 9. REPORT -->
+                <tr>
+                    <td><strong>9. REPORT</strong></td>
+                    <td><code>Report_ID (PK)</code></td>
+                    <td>
+                        <code>Center_ID (FK)</code> &rarr; CENTER<br>
+                        <code>Generated_By_User_ID (FK)</code> &rarr; USER
+                    </td>
+                    <td>
+                        <strong><code>Report_Type</code></strong> <em>(Daily / Monthly / Yearly)</em>, <code>Start_Date</code>, <code>End_Date</code>, <code>Generated_On</code>, <code>Summary</code>
+                    </td>
+                    <td><a href="{{ url_for('reports_page') }}" class="btn btn-sm btn-outline">Reports</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- SECTION 4: 3NF NORMALIZATION PROOF -->
+<div class="card" style="background: #F8FBF8; border-color: #C7E9C0;">
+    <div class="card-header">
+        <div class="card-title" style="color: var(--primary);">
+            <i class="fa-solid fa-graduation-cap"></i> Part 4: DBMS Examination Defense (Third Normal Form - 3NF Proof)
+        </div>
+    </div>
+    <div class="grid-3" style="font-size: 0.9rem;">
+        <div>
+            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 0.4rem;">
+                <i class="fa-solid fa-check-circle" style="color: var(--badge-green);"></i> First Normal Form (1NF)
+            </h4>
+            <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.55;">
+                Every table in the relational mapping contains strictly atomic (indivisible) scalar columns. There are zero multi-valued attributes or repeating groups (e.g. food portions and units are separated, contacts are distinct fields).
+            </p>
+        </div>
+        <div>
+            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 0.4rem;">
+                <i class="fa-solid fa-check-circle" style="color: var(--badge-green);"></i> Second Normal Form (2NF)
+            </h4>
+            <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.55;">
+                Every table satisfies 1NF and contains single-attribute primary keys (<code>User_ID</code>, <code>Donation_ID</code>, <code>Pickup_ID</code>, <code>Center_ID</code>, etc.). Therefore, no non-prime attribute suffers from partial key functional dependency.
+            </p>
+        </div>
+        <div>
+            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 0.4rem;">
+                <i class="fa-solid fa-check-circle" style="color: var(--badge-green);"></i> Third Normal Form (3NF)
+            </h4>
+            <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.55;">
+                Every table satisfies 2NF and contains zero transitive dependencies. Specialized organization details (<code>License_No</code>, <code>NGO_Type</code>, <code>Website</code>) are factored into <code>NGO_RECEIVER</code> rather than bloating <code>USER</code>.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const img = document.getElementById('erDiagramImg');
+    const container = document.getElementById('diagramContainer');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const zoomResetBtn = document.getElementById('zoomResetBtn');
+
+    let currentZoom = 1;
+
+    function applyZoom(zoom) {
+        currentZoom = Math.min(Math.max(zoom, 0.5), 2.8);
+        if (img) {
+            img.style.transform = `scale(${currentZoom})`;
+            img.style.transformOrigin = 'top center';
+        }
+    }
+
+    if (zoomInBtn) zoomInBtn.addEventListener('click', () => applyZoom(currentZoom + 0.25));
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => applyZoom(currentZoom - 0.25));
+    if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => applyZoom(1));
+
+    // Mouse drag pan support
+    if (container) {
+        let isDown = false;
+        let startX, startY, scrollLeft, scrollTop;
+
+        container.addEventListener('mousedown', (e) => {
+            isDown = true;
+            container.style.cursor = 'grabbing';
+            startX = e.pageX - container.offsetLeft;
+            startY = e.pageY - container.offsetTop;
+            scrollLeft = container.scrollLeft;
+            scrollTop = container.scrollTop;
+        });
+
+        container.addEventListener('mouseleave', () => {
+            isDown = false;
+            container.style.cursor = 'grab';
+        });
+
+        container.addEventListener('mouseup', () => {
+            isDown = false;
+            container.style.cursor = 'grab';
+        });
+
+        container.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - container.offsetLeft;
+            const y = e.pageY - container.offsetTop;
+            const walkX = (x - startX) * 1.5;
+            const walkY = (y - startY) * 1.5;
+            container.scrollLeft = scrollLeft - walkX;
+            container.scrollTop = scrollTop - walkY;
+        });
+    }
+});
+</script>
+{% endblock %}

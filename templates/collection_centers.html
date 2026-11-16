@@ -1,0 +1,716 @@
+{% extends 'base.html' %}
+
+{% block title %}Pune Collection & Triage Hubs - Smart Food Waste Reduction & Donation System{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet Map CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+    /* Pune Map Container & Custom Pin Styling */
+    #puneMap {
+        height: 480px;
+        width: 100%;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        z-index: 1;
+    }
+
+    .map-card-wrapper {
+        background: #FFFFFF;
+        border-radius: var(--radius-md);
+        padding: 1.25rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        margin-top: 1.25rem;
+    }
+
+    .map-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .filter-pills {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-pill {
+        background: #F1F5F9;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-full);
+        padding: 0.35rem 0.85rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .filter-pill:hover, .filter-pill.active {
+        background: var(--primary);
+        color: #FFFFFF;
+        border-color: var(--primary);
+    }
+
+    .custom-map-pin {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        color: #FFFFFF;
+        font-size: 0.95rem;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+        border: 2px solid #FFFFFF;
+        transition: transform 0.2s ease;
+    }
+
+    .custom-map-pin:hover {
+        transform: scale(1.18);
+    }
+
+    .pin-central { background: #1B4332; }
+    .pin-compost { background: #2D6A4F; }
+    .pin-biogas { background: #E76F51; }
+    .pin-recycle { background: #2A9D8F; }
+
+    /* Map Popup Custom Card */
+    .leaflet-popup-content-wrapper {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        padding: 0.25rem;
+    }
+
+    .leaflet-popup-content {
+        margin: 0.75rem 0.85rem;
+        font-family: inherit;
+        line-height: 1.45;
+    }
+
+    .popup-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.35rem;
+    }
+
+    .popup-badge {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: var(--radius-full);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+
+    .popup-address {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+        display: flex;
+        gap: 0.35rem;
+    }
+
+    .popup-stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        background: #F8F9FA;
+        padding: 0.5rem;
+        border-radius: var(--radius-sm);
+        margin: 0.5rem 0;
+        font-size: 0.78rem;
+    }
+
+    .popup-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        background: var(--primary);
+        color: #FFFFFF;
+        padding: 0.35rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-decoration: none;
+        margin-top: 0.4rem;
+        cursor: pointer;
+        border: none;
+    }
+    .popup-btn:hover {
+        background: var(--primary-hover);
+        color: #FFFFFF;
+    }
+
+    .center-card-highlight {
+        outline: 3px solid var(--accent-orange) !important;
+        transform: translateY(-4px);
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Header & Action Controls -->
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span class="badge badge-initiated"><i class="fa-solid fa-map-location-dot"></i> Pune Metropolitan Region</span>
+            <span class="badge badge-available">PMC & PCMC Jurisdiction</span>
+        </div>
+        <h1 style="font-size: 1.8rem; color: var(--dark); margin-top: 0.2rem;">Municipal Collection & Triage Hubs</h1>
+        <p style="color: var(--text-muted);">
+            Strategic facilities across Pune managing cold chain temporary storage, triage redistribution, composting units, and bio-energy plants.
+        </p>
+    </div>
+    {% if session.get('user_type') in ['Admin', 'Recycler'] %}
+        <button class="btn btn-primary" onclick="openModal('addCenterModal')">
+            <i class="fa-solid fa-plus-circle"></i> Add Pune Collection Center
+        </button>
+    {% endif %}
+</div>
+
+<!-- Pune Metropolitan KPI Stats Bar -->
+<div class="grid-4" style="margin-top: 1.25rem;">
+    <div class="card" style="padding: 1rem;">
+        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+            <i class="fa-solid fa-building-circle-check" style="color: var(--primary);"></i> Active Facilities
+        </div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: var(--dark); margin-top: 0.25rem;">
+            {{ centers|length }} Hubs
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Covering Central, East, West & IT Corridors</div>
+    </div>
+
+    <div class="card" style="padding: 1rem;">
+        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+            <i class="fa-solid fa-boxes-stacked" style="color: var(--badge-blue);"></i> Total City Capacity
+        </div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: var(--badge-blue); margin-top: 0.25rem;">
+            {{ centers|sum(attribute='Capacity')|round(0) }} kg
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Municipal food & waste intake capacity</div>
+    </div>
+
+    <div class="card" style="padding: 1rem;">
+        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+            <i class="fa-solid fa-weight-hanging" style="color: var(--badge-amber);"></i> Current Stored Load
+        </div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: var(--badge-amber); margin-top: 0.25rem;">
+            {{ centers|sum(attribute='Current_Occupancy')|round(0) }} kg
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Real-time occupancy across depots</div>
+    </div>
+
+    <div class="card" style="padding: 1rem;">
+        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+            <i class="fa-solid fa-recycle" style="color: var(--badge-green);"></i> Bio Output Generated
+        </div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: var(--badge-green); margin-top: 0.25rem;">
+            {{ centers|sum(attribute='Total_Processing_Output')|round(0) }} kg
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Compost, biogas & recycled materials</div>
+    </div>
+</div>
+
+<!-- ======================================================================== -->
+<!-- INTERACTIVE PUNE GEOGRAPHICAL MAP SECTION -->
+<!-- ======================================================================== -->
+<div class="map-card-wrapper">
+    <!-- Map Toolbar: Category Filters, Search & Reset -->
+    <div class="map-toolbar">
+        <div>
+            <div style="font-size: 0.95rem; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-compass" style="color: var(--primary);"></i> Pune City Geospatial Facility Map
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">
+                Click any marker pin to view facility capacity, contact hotline, and bio-output metrics.
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+            <!-- Locality Quick Search Input -->
+            <div style="position: relative;">
+                <input type="text" id="localitySearch" placeholder="Search Pune locality (e.g. Kothrud)..." 
+                       style="padding: 0.35rem 0.75rem 0.35rem 2rem; border-radius: var(--radius-full); border: 1px solid var(--border-color); font-size: 0.8rem; width: 230px;"
+                       oninput="filterCentersBySearch(this.value)">
+                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 0.75rem; top: 0.55rem; font-size: 0.75rem; color: var(--text-muted);"></i>
+            </div>
+
+            <!-- Reset Pune Map View Button -->
+            <button type="button" class="btn btn-sm btn-outline" onclick="resetPuneView()">
+                <i class="fa-solid fa-arrows-rotate"></i> Reset Pune View
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Pills by Center Type -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem;">
+        <div class="filter-pills" id="typeFilters">
+            <span class="filter-pill active" onclick="filterCenterType('All', this)">
+                <i class="fa-solid fa-layer-group"></i> All Facilities ({{ centers|length }})
+            </span>
+            <span class="filter-pill" onclick="filterCenterType('Central Hub', this)">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #1B4332; display: inline-block;"></span> Central Hubs
+            </span>
+            <span class="filter-pill" onclick="filterCenterType('Composting Unit', this)">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #2D6A4F; display: inline-block;"></span> Composting Units
+            </span>
+            <span class="filter-pill" onclick="filterCenterType('Biogas Plant', this)">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #E76F51; display: inline-block;"></span> Biogas Plants
+            </span>
+            <span class="filter-pill" onclick="filterCenterType('Recycling Depot', this)">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #2A9D8F; display: inline-block;"></span> Recycling Depots
+            </span>
+        </div>
+
+        <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.75rem;">
+            <span><i class="fa-solid fa-circle" style="color: #1B4332; font-size: 0.6rem;"></i> Central</span>
+            <span><i class="fa-solid fa-circle" style="color: #2D6A4F; font-size: 0.6rem;"></i> Compost</span>
+            <span><i class="fa-solid fa-circle" style="color: #E76F51; font-size: 0.6rem;"></i> Biogas</span>
+            <span><i class="fa-solid fa-circle" style="color: #2A9D8F; font-size: 0.6rem;"></i> Recycle</span>
+        </div>
+    </div>
+
+    <!-- The Leaflet Pune Map -->
+    <div id="puneMap"></div>
+</div>
+
+<!-- ======================================================================== -->
+<!-- FACILITY DETAIL CARDS GRID -->
+<!-- ======================================================================== -->
+<div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+    <h2 style="font-size: 1.4rem; color: var(--dark);">
+        <i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Pune Collection Facilities Directory
+    </h2>
+    <span style="font-size: 0.85rem; color: var(--text-muted);">
+        Click <strong>"Locate on Map"</strong> to fly to any center
+    </span>
+</div>
+
+<div class="grid-2" style="margin-top: 1rem;" id="centersGrid">
+    {% for c in centers %}
+        <div class="card center-card" id="center-card-{{ c.Center_ID }}" data-type="{{ c.Center_Type }}" data-name="{{ c.Center_Name|lower }}" data-address="{{ c.Address|lower }}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                <div>
+                    <span class="badge 
+                        {% if c.Center_Type == 'Central Hub' %}badge-initiated
+                        {% elif c.Center_Type == 'Composting Unit' %}badge-available
+                        {% elif c.Center_Type == 'Biogas Plant' %}badge-scheduled
+                        {% else %}badge-completed{% endif %}">
+                        <i class="fa-solid 
+                            {% if c.Center_Type == 'Central Hub' %}fa-warehouse
+                            {% elif c.Center_Type == 'Composting Unit' %}fa-seedling
+                            {% elif c.Center_Type == 'Biogas Plant' %}fa-fire-flame-curved
+                            {% else %}fa-recycle{% endif %}"></i>
+                        {{ c.Center_Type }}
+                    </span>
+                    <h3 style="font-size: 1.2rem; color: var(--dark); margin-top: 0.4rem;">{{ c.Center_Name }}</h3>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                        <i class="fa-solid fa-location-dot" style="color: var(--accent-orange);"></i> {{ c.Address }}
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <span class="badge {% if c.Utilization_Percentage >= 80 %}badge-expired{% elif c.Utilization_Percentage >= 50 %}badge-scheduled{% else %}badge-available{% endif %}">
+                        {{ c.Utilization_Percentage }}% Load
+                    </span>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem;">
+                        {{ c.Latitude|round(4) }}, {{ c.Longitude|round(4) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capacity Progress Bar -->
+            <div style="margin: 0.85rem 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem;">
+                    <span>Current Stored Waste</span>
+                    <span>{{ c.Current_Occupancy }} / {{ c.Capacity }} kg</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill {% if c.Utilization_Percentage >= 80 %}danger{% elif c.Utilization_Percentage >= 50 %}warning{% endif %}" 
+                         style="width: {{ [c.Utilization_Percentage, 100]|min }}%;"></div>
+                </div>
+            </div>
+
+            <!-- Operational Metrics & Action Strip -->
+            <div class="grid-2" style="font-size: 0.85rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem;">
+                <div>
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-phone"></i> Direct Hotline:</span><br>
+                    <strong><a href="tel:{{ c.Contact_No }}" style="color: var(--dark); text-decoration: none;">{{ c.Contact_No }}</a></strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-recycle"></i> Biological Output:</span><br>
+                    <strong style="color: var(--badge-green);">{{ c.Total_Processing_Output|round(1) }} kg</strong>
+                </div>
+            </div>
+
+            <div style="margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.8rem; color: var(--text-muted);">
+                    <i class="fa-solid fa-industry"></i> {{ c.Total_Processes_Run }} Conversion Batches Run
+                </span>
+                <button type="button" class="btn btn-sm btn-outline" onclick="locateCenter({{ c.Center_ID }}, {{ c.Latitude }}, {{ c.Longitude }})">
+                    <i class="fa-solid fa-crosshairs"></i> Locate on Map
+                </button>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- ======================================================================== -->
+<!-- MODAL: REGISTER NEW PUNE COLLECTION CENTER -->
+<!-- ======================================================================== -->
+<div id="addCenterModal" class="modal">
+    <div class="modal-content" style="max-width: 620px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-warehouse"></i> Register New Pune Collection Hub</h3>
+            <button class="modal-close" onclick="closeModal('addCenterModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('add_collection_center') }}" method="POST">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Center Facility Name</label>
+                    <input type="text" name="center_name" class="form-control" placeholder="e.g. Baner Bio-Triage & Cold Storage Hub" required>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Facility Classification (Diagram: NGO / Recycler / Compost Unit)</label>
+                        <select name="center_type" class="form-control" id="modalCenterType">
+                            <option value="Central Hub" selected>Central Hub (Triage & Storage)</option>
+                            <option value="Compost Unit">Compost Unit (Organic Fertilizer)</option>
+                            <option value="Biogas Plant">Biogas Plant (Methane Energy)</option>
+                            <option value="Recycler">Recycler (Packaging & Material Processing)</option>
+                            <option value="NGO">NGO Facility (Direct Beneficiary Center)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Storage Capacity (kg)</label>
+                        <input type="number" step="50" name="capacity" class="form-control" placeholder="e.g. 2500" required>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Direct Contact Number</label>
+                        <input type="tel" name="contact_no" class="form-control" placeholder="e.g. +91 20 2553 0000" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Pune Zone / Sector</label>
+                        <select class="form-control" onchange="autoFillPuneLocality(this.value)">
+                            <option value="">-- Quick Select Pune Locality --</option>
+                            <option value="Baner">Baner (18.5590, 73.7868)</option>
+                            <option value="Aundh">Aundh (18.5580, 73.8075)</option>
+                            <option value="Kalyani Nagar">Kalyani Nagar (18.5463, 73.9034)</option>
+                            <option value="Pimpri">Pimpri Chinchwad (18.6279, 73.8009)</option>
+                            <option value="Swargate">Swargate (18.5018, 73.8636)</option>
+                            <option value="Wakad">Wakad (18.5987, 73.7686)</option>
+                            <option value="Camp">Pune Camp / Cantonment (18.5146, 73.8785)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Full Physical Location Address (Pune)</label>
+                    <textarea id="modalAddress" name="address" class="form-control" rows="2" placeholder="e.g. Sector 7, Near High Street, Baner, Pune - 411045" required></textarea>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Geo Latitude (Pune)</label>
+                        <input type="number" step="0.000001" id="modalLatitude" name="latitude" class="form-control" value="18.520430" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Geo Longitude (Pune)</label>
+                        <input type="number" step="0.000001" id="modalLongitude" name="longitude" class="form-control" value="73.856744" required>
+                    </div>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem;">
+                    <i class="fa-solid fa-circle-info"></i> Coordinates default to Pune City Center (`18.5204`, `73.8567`). You can also click anywhere on the map to pick exact coordinates.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('addCenterModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Register Hub</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet Map JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    // -------------------------------------------------------------------------
+    // Pune Collection Centers Geospatial Map Controller
+    // -------------------------------------------------------------------------
+    const centersData = {{ centers|tojson }};
+    const PUNE_CENTER_COORDS = [18.520430, 73.856744]; // Pune Municipal Corporation Center
+    let puneMap = null;
+    let markersLayer = null;
+    let markersMap = {}; // Center_ID -> Marker
+
+    // Pin icon generator based on facility type
+    function createCustomMarkerIcon(centerType) {
+        let pinClass = 'pin-central';
+        let iconHtml = '<i class="fa-solid fa-warehouse"></i>';
+
+        switch (centerType) {
+            case 'Composting Unit':
+                pinClass = 'pin-compost';
+                iconHtml = '<i class="fa-solid fa-seedling"></i>';
+                break;
+            case 'Biogas Plant':
+                pinClass = 'pin-biogas';
+                iconHtml = '<i class="fa-solid fa-fire-flame-curved"></i>';
+                break;
+            case 'Recycling Depot':
+                pinClass = 'pin-recycle';
+                iconHtml = '<i class="fa-solid fa-recycle"></i>';
+                break;
+            default:
+                pinClass = 'pin-central';
+                iconHtml = '<i class="fa-solid fa-warehouse"></i>';
+                break;
+        }
+
+        return L.divIcon({
+            className: 'custom-div-icon',
+            html: `<div class="custom-map-pin ${pinClass}">${iconHtml}</div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+            popupAnchor: [0, -20]
+        });
+    }
+
+    // Initialize Leaflet Map of Pune
+    function initPuneMap() {
+        if (!document.getElementById('puneMap')) return;
+
+        puneMap = L.map('puneMap', {
+            center: PUNE_CENTER_COORDS,
+            zoom: 12,
+            scrollWheelZoom: true
+        });
+
+        // Add OpenStreetMap Tile Layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | PMC Smart Food Waste System',
+            maxZoom: 18
+        }).addTo(puneMap);
+
+        markersLayer = L.layerGroup().addTo(puneMap);
+
+        // Render markers for all Pune collection centers
+        renderMarkers(centersData);
+
+        // Allow clicking on map to set coordinates in the "Add Center" modal
+        puneMap.on('click', function(e) {
+            const lat = e.latlng.lat.toFixed(6);
+            const lng = e.latlng.lng.toFixed(6);
+            const latInput = document.getElementById('modalLatitude');
+            const lngInput = document.getElementById('modalLongitude');
+            if (latInput && lngInput) {
+                latInput.value = lat;
+                lngInput.value = lng;
+            }
+        });
+    }
+
+    // Render markers on the map
+    function renderMarkers(items) {
+        if (!markersLayer) return;
+        markersLayer.clearLayers();
+        markersMap = {};
+
+        const bounds = [];
+
+        items.forEach(c => {
+            const lat = parseFloat(c.Latitude) || PUNE_CENTER_COORDS[0];
+            const lng = parseFloat(c.Longitude) || PUNE_CENTER_COORDS[1];
+            const coords = [lat, lng];
+            bounds.push(coords);
+
+            const marker = L.marker(coords, {
+                icon: createCustomMarkerIcon(c.Center_Type),
+                title: c.Center_Name
+            });
+
+            // Badge color for utilization
+            let loadColor = '#2E7D32';
+            let loadBg = '#E8F5E9';
+            if (c.Utilization_Percentage >= 80) {
+                loadColor = '#D32F2F';
+                loadBg = '#FFEBEE';
+            } else if (c.Utilization_Percentage >= 50) {
+                loadColor = '#ED6C02';
+                loadBg = '#FFF3E0';
+            }
+
+            // Build rich popup content
+            const popupHtml = `
+                <div style="min-width: 230px;">
+                    <span class="popup-badge" style="background: ${loadBg}; color: ${loadColor};">
+                        ${c.Center_Type} &bull; ${c.Utilization_Percentage}% Load
+                    </span>
+                    <div class="popup-title">${c.Center_Name}</div>
+                    <div class="popup-address">
+                        <i class="fa-solid fa-location-dot" style="color: var(--accent-orange); margin-top: 2px;"></i>
+                        <span>${c.Address}</span>
+                    </div>
+
+                    <div style="margin: 0.4rem 0;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; margin-bottom: 2px;">
+                            <span>Stored Waste</span>
+                            <span>${c.Current_Occupancy} / ${c.Capacity} kg</span>
+                        </div>
+                        <div style="height: 6px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; width: ${Math.min(c.Utilization_Percentage, 100)}%; background: ${loadColor};"></div>
+                        </div>
+                    </div>
+
+                    <div class="popup-stat-grid">
+                        <div>
+                            <span style="color: #64748B;">Hotline:</span><br>
+                            <strong><a href="tel:${c.Contact_No}" style="color: inherit; text-decoration: none;">${c.Contact_No}</a></strong>
+                        </div>
+                        <div>
+                            <span style="color: #64748B;">Bio Output:</span><br>
+                            <strong style="color: #2E7D32;">${parseFloat(c.Total_Processing_Output || 0).toFixed(0)} kg</strong>
+                        </div>
+                    </div>
+
+                    <button class="popup-btn" onclick="scrollToCenterCard(${c.Center_ID})">
+                        <i class="fa-solid fa-arrow-down"></i> View Center Details
+                    </button>
+                </div>
+            `;
+
+            marker.bindPopup(popupHtml);
+            marker.addTo(markersLayer);
+            markersMap[c.Center_ID] = marker;
+        });
+
+        // Fit map bounds if multiple markers exist
+        if (bounds.length > 1 && puneMap) {
+            puneMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+        }
+    }
+
+    // Reset Map View to default Pune City center
+    window.resetPuneView = function() {
+        if (puneMap) {
+            puneMap.flyTo(PUNE_CENTER_COORDS, 12, { duration: 1.2 });
+            puneMap.closePopup();
+        }
+    };
+
+    // Locate and Zoom to Center on Map from card button
+    window.locateCenter = function(centerId, lat, lng) {
+        if (!puneMap) return;
+
+        // Smooth scroll map into view
+        document.getElementById('puneMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        setTimeout(() => {
+            puneMap.flyTo([lat, lng], 15, { duration: 1.0 });
+            if (markersMap[centerId]) {
+                setTimeout(() => markersMap[centerId].openPopup(), 900);
+            }
+        }, 300);
+    };
+
+    // Scroll from popup down to center card
+    window.scrollToCenterCard = function(centerId) {
+        const card = document.getElementById(`center-card-${centerId}`);
+        if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.classList.add('center-card-highlight');
+            setTimeout(() => card.classList.remove('center-card-highlight'), 2500);
+        }
+    };
+
+    // Filter centers by facility classification pill
+    window.filterCenterType = function(type, element) {
+        // Toggle active pill styling
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        if (element) element.classList.add('active');
+
+        const filtered = (type === 'All') 
+            ? centersData 
+            : centersData.filter(c => c.Center_Type === type);
+
+        renderMarkers(filtered);
+
+        // Also filter cards in directory below
+        document.querySelectorAll('.center-card').forEach(card => {
+            if (type === 'All' || card.getAttribute('data-type') === type) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    };
+
+    // Filter centers by search text (locality or name)
+    window.filterCentersBySearch = function(query) {
+        const q = query.trim().toLowerCase();
+        const filtered = centersData.filter(c => 
+            c.Center_Name.toLowerCase().includes(q) || 
+            c.Address.toLowerCase().includes(q) ||
+            c.Center_Type.toLowerCase().includes(q)
+        );
+
+        renderMarkers(filtered);
+
+        document.querySelectorAll('.center-card').forEach(card => {
+            const name = card.getAttribute('data-name') || '';
+            const addr = card.getAttribute('data-address') || '';
+            const type = (card.getAttribute('data-type') || '').toLowerCase();
+            if (name.includes(q) || addr.includes(q) || type.includes(q)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    };
+
+    // Auto-fill Pune locality coordinates in modal
+    window.autoFillPuneLocality = function(locality) {
+        const coords = {
+            'Baner': { lat: 18.5590, lng: 73.7868, addr: 'Baner Main Road, Near High Street, Pune - 411045' },
+            'Aundh': { lat: 18.5580, lng: 73.8075, addr: 'DP Road, Aundh Municipal Complex, Pune - 411007' },
+            'Kalyani Nagar': { lat: 18.5463, lng: 73.9034, addr: 'East Avenue, Near Joggers Park, Kalyani Nagar, Pune - 411006' },
+            'Pimpri': { lat: 18.6279, lng: 73.8009, addr: 'Old Mumbai-Pune Highway, Pimpri Chinchwad, Pune - 411018' },
+            'Swargate': { lat: 18.5018, lng: 73.8636, addr: 'Swargate Bus Terminal & Metro Logistics Hub, Pune - 411042' },
+            'Wakad': { lat: 18.5987, lng: 73.7686, addr: 'Dange Chowk Road, Wakad, Pune - 411057' },
+            'Camp': { lat: 18.5146, lng: 73.8785, addr: 'MG Road, Pune Cantonment Board Area, Pune - 411001' }
+        };
+
+        if (coords[locality]) {
+            document.getElementById('modalLatitude').value = coords[locality].lat;
+            document.getElementById('modalLongitude').value = coords[locality].lng;
+            document.getElementById('modalAddress').value = coords[locality].addr;
+        }
+    };
+
+    // Initialize map once DOM is ready
+    document.addEventListener('DOMContentLoaded', initPuneMap);
+</script>
+{% endblock %}

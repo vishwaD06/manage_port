@@ -1,0 +1,441 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports & Analytics - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border: none; padding-bottom: 0;">
+    <div>
+        <h1 style="font-size: 1.8rem; color: var(--dark);">Reports & Database Intelligence</h1>
+        <p style="color: var(--text-muted);">
+            Live visualizations and statistical aggregates computed directly from MySQL database queries.
+        </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        {% if session.get('user_type') in ['Admin', 'Recycler'] %}
+            <button class="btn btn-primary" onclick="openModal('generateReportModal')">
+                <i class="fa-solid fa-file-circle-plus"></i> Generate Audit Report
+            </button>
+        {% endif %}
+        {% if session.get('user_type') == 'Admin' %}
+            <a href="{{ url_for('export_csv_report') }}" class="btn btn-outline">
+                <i class="fa-solid fa-file-csv"></i> Export CSV
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Daily Food Donation Pulse & 7-Day Velocity Section -->
+<div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, #F8FDF9 0%, #FFFFFF 100%); border: 1px solid #D8F3DC; border-left: 5px solid var(--primary);">
+    <div class="card-header" style="padding-bottom: 0.5rem; border: none;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--primary); font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                <span class="live-pulse" style="width: 8px; height: 8px; background: #2E7D32; border-radius: 50%; display: inline-block;"></span>
+                Daily Intake Monitoring
+            </div>
+            <h2 style="font-size: 1.35rem; color: var(--dark); margin: 0.25rem 0 0.15rem 0;">
+                <i class="fa-solid fa-calendar-day" style="color: var(--primary);"></i> How Much Is Donated in a Day?
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                Live municipal 24-hour collection pulse and continuous 7-day donation velocity across Pune municipal jurisdiction.
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <span class="badge badge-completed" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                <i class="fa-solid fa-shield-halved"></i> 100% Thermal Verified
+            </span>
+        </div>
+    </div>
+
+    <!-- 4 Daily Pulse KPIs -->
+    <div class="grid-4" style="margin: 1rem 0 1.25rem; gap: 1rem;">
+        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: var(--radius-sm); padding: 1rem; text-align: center; box-shadow: var(--shadow-sm);">
+            <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Today's Rescued Food</div>
+            <div style="font-size: 1.9rem; font-weight: 800; color: var(--primary); margin: 0.2rem 0;">{{ daily_stats.today_kg }} <span style="font-size: 1rem; font-weight: 600;">kg</span></div>
+            <div style="font-size: 0.78rem; color: #166534;"><i class="fa-solid fa-arrow-trend-up"></i> Active 24-hour intake</div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: var(--radius-sm); padding: 1rem; text-align: center; box-shadow: var(--shadow-sm);">
+            <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Meals Nourished Today</div>
+            <div style="font-size: 1.9rem; font-weight: 800; color: #0288D1; margin: 0.2rem 0;">{{ daily_stats.today_meals }} <span style="font-size: 1rem; font-weight: 600;">meals</span></div>
+            <div style="font-size: 0.78rem; color: #0369A1;"><i class="fa-solid fa-utensils"></i> Beneficiaries fed</div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: var(--radius-sm); padding: 1rem; text-align: center; box-shadow: var(--shadow-sm);">
+            <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Verified Today's Batches</div>
+            <div style="font-size: 1.9rem; font-weight: 800; color: #B45309; margin: 0.2rem 0;">{{ daily_stats.today_count }} <span style="font-size: 1rem; font-weight: 600;">batches</span></div>
+            <div style="font-size: 0.78rem; color: #B45309;"><i class="fa-solid fa-certificate"></i> FSSAI verified safe</div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: var(--radius-sm); padding: 1rem; text-align: center; box-shadow: var(--shadow-sm);">
+            <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">City Daily Average</div>
+            <div style="font-size: 1.9rem; font-weight: 800; color: var(--dark); margin: 0.2rem 0;">{{ daily_stats.daily_avg_kg }} <span style="font-size: 1rem; font-weight: 600;">kg/day</span></div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-chart-line"></i> Pune city benchmark</div>
+        </div>
+    </div>
+
+    <!-- 7-Day Velocity Table -->
+    {% if daily_trend %}
+        <div style="margin-top: 0.5rem;">
+            <h4 style="font-size: 0.95rem; color: var(--dark); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-table-list" style="color: var(--primary);"></i> 7-Day Donation Velocity Breakdown:
+            </h4>
+            <div class="table-responsive">
+                <table class="data-table" style="font-size: 0.88rem;">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Total Donated (kg)</th>
+                            <th>Meals Delivered</th>
+                            <th>CO₂e Prevented</th>
+                            <th>Active Batches</th>
+                            <th>Audit Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in daily_trend %}
+                            <tr>
+                                <td><strong>{{ row.donation_date|date_format }}</strong></td>
+                                <td><span style="font-weight: 700; color: var(--primary);">{{ row.total_kg }} kg</span></td>
+                                <td>{{ row.meals_count }} meals</td>
+                                <td><span style="color: #2E7D32; font-weight: 600;">{{ row.co2_avoided }} kg CO₂e</span></td>
+                                <td>{{ row.donation_count }} pickups</td>
+                                <td><span class="badge badge-completed"><i class="fa-solid fa-check"></i> Reconciled</span></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- What Happens to Waste Food? — 4-Stage Valorization Framework -->
+<div class="card" style="margin-top: 1.5rem; border-left: 5px solid #F4A261;">
+    <div class="card-header" style="border: none; padding-bottom: 0;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: #E76F51; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fa-solid fa-recycle"></i> Circular Waste Diversion
+            </div>
+            <h2 style="font-size: 1.35rem; color: var(--dark); margin: 0.25rem 0 0.15rem 0;">
+                What Happens to Waste Food? — Pune Municipal Valorization Hierarchy
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                When food is spoiled, expired, or deemed unconsumable during FSSAI thermal inspection, it is never landfilled. It enters a strict 4-stage municipal bio-conversion pathway.
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('processes_list') }}" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-sliders"></i> View Live Conversion Runs
+            </a>
+        </div>
+    </div>
+
+    <div class="grid-4" style="margin: 1.25rem 0 0.5rem; gap: 1rem;">
+        <div style="background: #FDFBF7; border: 1px solid #FED7AA; border-radius: var(--radius-sm); padding: 1.1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #EA580C; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">1</div>
+                <h4 style="margin: 0; font-size: 0.95rem; color: var(--dark);">Triage & Moisture Sorting</h4>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                Incoming spoiled batches are scanned, depackaged, and segregated into high-moisture slurries (suitable for methanation) vs fibrous organics (suitable for composting).
+            </p>
+            <div style="margin-top: 0.6rem; font-size: 0.78rem; color: #C2410C; font-weight: 600;">
+                📍 All 4 Municipal Hubs
+            </div>
+        </div>
+
+        <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: var(--radius-sm); padding: 1.1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #16A34A; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">2</div>
+                <h4 style="margin: 0; font-size: 0.95rem; color: var(--dark);">Aerobic Composting</h4>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                Fibrous food scraps undergo controlled 21-day thermophilic aerobic degradation at 55–65°C. Generates Grade-A microbial organic compost for local urban farms.
+            </p>
+            <div style="margin-top: 0.6rem; font-size: 0.78rem; color: #15803D; font-weight: 600;">
+                📍 Hadapsar Organic Composting Hub (Yield: 35%)
+            </div>
+        </div>
+
+        <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--radius-sm); padding: 1.1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #0288D1; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">3</div>
+                <h4 style="margin: 0; font-size: 0.95rem; color: var(--dark);">Biogas / Bio-CNG</h4>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                Liquid food sludges and gravies enter anaerobic biomethanization digesters. Methane is scrubbed to 95% purity and bottled as Bio-CNG for municipal waste trucks.
+            </p>
+            <div style="margin-top: 0.6rem; font-size: 0.78rem; color: #0369A1; font-weight: 600;">
+                📍 Kothrud Biogas Digestion Plant (Yield: 10 m³/100kg)
+            </div>
+        </div>
+
+        <div style="background: #FAF5FF; border: 1px solid #E9D5FF; border-radius: var(--radius-sm); padding: 1.1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #9333EA; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">4</div>
+                <h4 style="margin: 0; font-size: 0.95rem; color: var(--dark);">Pelleting & Material Recovery</h4>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                Cardboard, liners, and clean packaging are baled for paper mills. Residual solid digestate is dried and pressed into high-calorific biomass fuel briquettes.
+            </p>
+            <div style="margin-top: 0.6rem; font-size: 0.78rem; color: #7E22CE; font-weight: 600;">
+                📍 Shivajinagar Material Recycling Hub
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Charts Grid (Chart.js) -->
+<div class="grid-2" style="margin-top: 1.5rem;">
+    <!-- Chart 1: Rescued Food by Category -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title" style="font-size: 1.05rem;">
+                <i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> Rescued Food by Category (kg)
+            </div>
+        </div>
+        <div style="position: relative; height: 260px;">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 2: Monthly Food Rescue Trend -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title" style="font-size: 1.05rem;">
+                <i class="fa-solid fa-chart-line" style="color: var(--badge-green);"></i> Monthly Rescue Trend
+            </div>
+        </div>
+        <div style="position: relative; height: 260px;">
+            <canvas id="monthlyTrendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 3: Waste Conversion Yields -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title" style="font-size: 1.05rem;">
+                <i class="fa-solid fa-chart-column" style="color: var(--accent-orange);"></i> Eco-Conversion Output Yield (kg / units)
+            </div>
+        </div>
+        <div style="position: relative; height: 260px;">
+            <canvas id="processChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 4: Center Capacity Utilization -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title" style="font-size: 1.05rem;">
+                <i class="fa-solid fa-chart-bar" style="color: #0288D1;"></i> Center Storage Utilization (%)
+            </div>
+        </div>
+        <div style="position: relative; height: 260px;">
+            <canvas id="centerChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Formal Saved Reports Archive -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-folder-closed" style="color: var(--dark);"></i> Archived Formal Audit Reports
+        </div>
+    </div>
+
+    {% if reports %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Report ID</th>
+                        <th>Report Classification</th>
+                        <th>Audit Period</th>
+                        <th>Associated Hub</th>
+                        <th>Generated By</th>
+                        <th>Generated Timestamp</th>
+                        <th>Executive Summary</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reports %}
+                        <tr>
+                            <td>#{{ r.Report_ID }}</td>
+                            <td><span class="badge badge-initiated">{{ r.Report_Type }}</span></td>
+                            <td><strong>{{ r.Start_Date|date_format }}</strong> to <strong>{{ r.End_Date|date_format }}</strong></td>
+                            <td>{{ r.Center_Name or 'Citywide Consolidation' }}</td>
+                            <td>{{ r.Generated_By }}</td>
+                            <td>{{ r.Generated_On|datetime_format }}</td>
+                            <td><small>{{ r.Summary }}</small></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No formal audit reports generated yet.</p>
+    {% endif %}
+</div>
+
+<!-- Modal: Generate Audit Report -->
+<div id="generateReportModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-file-circle-plus"></i> Compile Official Audit Report</h3>
+            <button class="modal-close" onclick="closeModal('generateReportModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('generate_report') }}" method="POST">
+            <div class="modal-body">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Report Classification (Diagram: Daily / Monthly / Yearly)</label>
+                        <select name="report_type" class="form-control" required>
+                            <option value="Daily">Daily Log / Audit</option>
+                            <option value="Monthly" selected>Monthly Summary</option>
+                            <option value="Yearly">Yearly Impact Statement</option>
+                            <option value="Daily Log">Daily Operational Log</option>
+                            <option value="Monthly Summary">Monthly Executive Summary</option>
+                            <option value="Donation Audit">Donation Audit</option>
+                            <option value="Waste Processing">Waste Processing</option>
+                            <option value="Annual Impact">Annual Environmental Impact</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Associated Collection Center</label>
+                        <select name="center_id" class="form-control">
+                            <option value="">All Municipal Hubs Combined</option>
+                            {% for c in centers %}
+                                <option value="{{ c.Center_ID }}">{{ c.Center_Name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Period Start Date</label>
+                        <input type="date" name="start_date" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Period End Date</label>
+                        <input type="date" name="end_date" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Custom Executive Summary (Optional)</label>
+                    <textarea name="summary" class="form-control" rows="2" placeholder="Leave blank to automatically calculate SQL aggregation metrics across the date range."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('generateReportModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save to Database</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Category Doughnut Chart
+    const catLabels = {{ category_data|map(attribute='Food_Category')|list|tojson }};
+    const catValues = {{ category_data|map(attribute='total_kg')|list|tojson }};
+    
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'doughnut',
+        data: {
+            labels: catLabels.length ? catLabels : ['Cooked Food', 'Bakery', 'Vegetables', 'Groceries'],
+            datasets: [{
+                data: catValues.length ? catValues : [110, 40, 150, 95],
+                backgroundColor: ['#2D6A4F', '#40916C', '#74C69D', '#F4A261', '#E76F51']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right' } }
+        }
+    });
+
+    // 2. Monthly Trend Line Chart
+    const monthLabels = {{ monthly_data|map(attribute='month_label')|list|tojson }};
+    const monthValues = {{ monthly_data|map(attribute='total_kg')|list|tojson }};
+    
+    new Chart(document.getElementById('monthlyTrendChart'), {
+        type: 'line',
+        data: {
+            labels: monthLabels.length ? monthLabels : ['Sep 2026', 'Oct 2026', 'Nov 2026'],
+            datasets: [{
+                label: 'Food Rescued (kg)',
+                data: monthValues.length ? monthValues : [280, 520, 680],
+                borderColor: '#1B4332',
+                backgroundColor: 'rgba(45, 106, 79, 0.1)',
+                tension: 0.35,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // 3. Process Conversion Yields Bar Chart
+    const procLabels = {{ process_data|map(attribute='Process_Type')|list|tojson }};
+    const procInput = {{ process_data|map(attribute='input_kg')|list|tojson }};
+    const procOutput = {{ process_data|map(attribute='output_kg')|list|tojson }};
+
+    new Chart(document.getElementById('processChart'), {
+        type: 'bar',
+        data: {
+            labels: procLabels.length ? procLabels : ['Composting', 'Biogas', 'Recycling'],
+            datasets: [
+                {
+                    label: 'Input Waste (kg)',
+                    data: procInput.length ? procInput : [620, 1030, 520],
+                    backgroundColor: '#E76F51'
+                },
+                {
+                    label: 'Output Yield (kg/units)',
+                    data: procOutput.length ? procOutput : [215, 160, 475],
+                    backgroundColor: '#2E7D32'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // 4. Center Capacity Utilization Horizontal Bar Chart
+    const centerLabels = {{ center_data|map(attribute='Center_Name')|list|tojson }};
+    const centerUtil = {{ center_data|map(attribute='Utilization_Percentage')|list|tojson }};
+
+    new Chart(document.getElementById('centerChart'), {
+        type: 'bar',
+        data: {
+            labels: centerLabels.length ? centerLabels : ['Central Hub', 'North Depot', 'South Plant', 'West Depot'],
+            datasets: [{
+                label: 'Utilization %',
+                data: centerUtil.length ? centerUtil : [28.3, 31.0, 19.2, 20.6],
+                backgroundColor: '#0288D1'
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { max: 100, beginAtZero: true } }
+        }
+    });
+});
+</script>
+{% endblock %}

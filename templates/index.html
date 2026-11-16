@@ -1,0 +1,555 @@
+{% extends 'base.html' %}
+
+{% block title %}Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <span class="hero-tag"><i class="fa-solid fa-leaf"></i> Zero Hunger & Circular Bio-Economy</span>
+        <h1 class="hero-title">Bridging Surplus Food to Hungry Hearts & Converting Waste to Green Energy</h1>
+        <p class="hero-desc">
+            An automated, database-driven platform connecting commercial food donors with certified NGOs while intelligently diverting inedible scraps into municipal composting, biogas, and recycling hubs.
+        </p>
+        <div class="hero-buttons">
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-accent"><i class="fa-solid fa-gauge-high"></i> Go to Your Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('register') }}" class="btn btn-accent"><i class="fa-solid fa-hand-holding-heart"></i> Get Started as Donor or NGO</a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline" style="color: #FFFFFF; border-color: rgba(255,255,255,0.4);"><i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In to Demo Accounts</a>
+            {% endif %}
+            <a href="#nature-contribution" class="btn btn-outline" style="color: #FFFFFF; border-color: rgba(255,255,255,0.4);"><i class="fa-solid fa-earth-americas"></i> Contribution in Nature</a>
+            <a href="{{ url_for('viva_queries') }}" class="btn btn-outline" style="color: #FFFFFF; border-color: rgba(255,255,255,0.4);"><i class="fa-solid fa-database"></i> Explore Viva SQL Queries</a>
+        </div>
+    </div>
+</section>
+
+<!-- Daily Donation Pulse & Food Safety Verification Bar -->
+<div style="background: linear-gradient(135deg, #092017 0%, #0F382C 50%, #1B4332 100%); color: #FFFFFF; border-radius: var(--radius-md); padding: 1.15rem 1.6rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; box-shadow: 0 4px 16px rgba(15, 56, 44, 0.15); border: 1px solid rgba(82, 183, 136, 0.3);">
+    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <span class="badge" style="background: #2D6A4F; color: #FFFFFF; padding: 0.45rem 0.85rem; font-size: 0.82rem; font-weight: 700; border-radius: 9999px; letter-spacing: 0.5px;">
+            <i class="fa-solid fa-clock-rotate-left"></i> TODAY'S DONATION PULSE
+        </span>
+        <div style="font-size: 1.05rem;">
+            <strong>{{ daily_stats.today_kg }} kg</strong> surplus food donated today (~<strong>{{ daily_stats.today_meals }}</strong> wholesome meals) across {{ daily_stats.today_count }} live batches.
+        </div>
+    </div>
+    <div style="display: flex; gap: 1rem; align-items: center; font-size: 0.88rem; flex-wrap: wrap;">
+        <span style="color: #95D5B2;"><i class="fa-solid fa-chart-line"></i> Daily Average: <strong>{{ daily_stats.daily_avg_kg }} kg/day</strong></span>
+        <span style="background: rgba(255,255,255,0.12); padding: 0.35rem 0.85rem; border-radius: 9999px; color: #D8F3DC; font-weight: 600;">
+            <i class="fa-solid fa-shield-check" style="color: #52B788;"></i> 100% FSSAI Safety Verified
+        </span>
+    </div>
+</div>
+
+<!-- Live MySQL Statistics Strip -->
+<div class="grid-4" style="margin-bottom: 2.5rem;">
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="fa-solid fa-bowl-rice"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ (stats.total_donated_kg or 0)|round(1) }} kg</div>
+            <div class="stat-label">Total Food Rescued</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="fa-solid fa-truck-fast"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ stats.completed_donations or 0 }}</div>
+            <div class="stat-label">Completed Deliveries</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="fa-solid fa-people-roof"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ stats.registered_ngos or 0 }}</div>
+            <div class="stat-label">Partner Food Banks & NGOs</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i class="fa-solid fa-recycle"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ (stats.waste_diverted_kg or 0)|round(1) }} kg</div>
+            <div class="stat-label">Landfill Waste Diverted</div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Surplus Food Listings Preview -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-bell" style="color: var(--accent-orange);"></i> Live Surplus Food Listings (Ready for Pickup)
+        </div>
+        <a href="{{ url_for('donations_list') }}" class="btn btn-sm btn-outline">View All Listings <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+
+    {% if recent_donations %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Food Item</th>
+                        <th>Donor</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Time Remaining</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in recent_donations %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.Food_Type }}</strong><br>
+                                <small style="color: #16A34A; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;">
+                                    <i class="fa-solid fa-shield-check"></i> {{ item.Safety_Status or 'Verified Safe' }} ({{ item.Temperature_Celsius or '65.0' }}°C)
+                                </small>
+                            </td>
+                            <td>{{ item.Donor_Name }}</td>
+                            <td><span class="badge badge-initiated">{{ item.Food_Category }}</span></td>
+                            <td><strong>{{ item.Quantity }} {{ item.Unit }}</strong></td>
+                            <td>
+                                {% if item.Hours_Until_Expiry <= 6 %}
+                                    <span class="urgent-pill"><i class="fa-solid fa-fire"></i> {{ item.Hours_Until_Expiry }} hrs left</span>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-weight: 500;"><i class="fa-regular fa-clock"></i> {{ item.Hours_Until_Expiry }} hrs</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge badge-available">{{ item.Status }}</span></td>
+                            <td>
+                                <a href="{{ url_for('donation_details', donation_id=item.Donation_ID) }}" class="btn btn-sm btn-outline">Details</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No active listings at this moment. Check back soon or list surplus food!</p>
+    {% endif %}
+</div>
+
+<!-- How It Works Section -->
+<div class="card" style="background: #FFFFFF;">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-diagram-project" style="color: var(--primary);"></i> How the System Works (End-to-End Relational Architecture)
+        </div>
+    </div>
+
+    <div class="grid-4" style="margin-top: 1rem;">
+        <div style="padding: 1rem; border: 1px dashed var(--border-color); border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;"><i class="fa-solid fa-utensils"></i></div>
+            <h4 style="font-size: 1.05rem; margin-bottom: 0.4rem;">1. Donors Post</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Hotels, messes, and caterers register food category, portions, packaging, and strict expiration times.
+            </p>
+        </div>
+
+        <div style="padding: 1rem; border: 1px dashed var(--border-color); border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 2rem; color: var(--accent-orange); margin-bottom: 0.5rem;"><i class="fa-solid fa-handshake-angle"></i></div>
+            <h4 style="font-size: 1.05rem; margin-bottom: 0.4rem;">2. NGOs Claim</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Certified food banks reserve listings atomically through database transactions preventing duplicate claims.
+            </p>
+        </div>
+
+        <div style="padding: 1rem; border: 1px dashed var(--border-color); border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 2rem; color: #0288D1; margin-bottom: 0.5rem;"><i class="fa-solid fa-truck-ramp-box"></i></div>
+            <h4 style="font-size: 1.05rem; margin-bottom: 0.4rem;">3. Pickup & Triage</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Drivers dispatch for insulated pickup. Collection centers log transit logs and quality inspection.
+            </p>
+        </div>
+
+        <div style="padding: 1rem; border: 1px dashed var(--border-color); border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 2rem; color: var(--badge-green); margin-bottom: 0.5rem;"><i class="fa-solid fa-recycle"></i></div>
+            <h4 style="font-size: 1.05rem; margin-bottom: 0.4rem;">4. Eco Processing</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Inedible food scraps are converted into nutrient-rich compost, biogas energy, or recycled packaging.
+            </p>
+        </div>
+    </div>
+
+    <!-- Deep-Dive Integration: Food Safety Verification & Waste Food Processing -->
+    <div class="grid-2" style="margin-top: 1.5rem; gap: 1.5rem;">
+        <!-- Food Safety Protocol -->
+        <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: var(--radius-md); padding: 1.5rem; position: relative;">
+            <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.75rem;">
+                <div style="width: 42px; height: 42px; border-radius: 10px; background: #DCFCE7; color: #166534; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                    <i class="fa-solid fa-shield-check"></i>
+                </div>
+                <div>
+                    <h4 style="color: #14532D; font-size: 1.1rem; margin: 0;">Food Safety & Quality Verification Protocol</h4>
+                    <span style="font-size: 0.78rem; color: #15803D; font-weight: 700; text-transform: uppercase;">FSSAI Guidelines & Thermal Chain Audit</span>
+                </div>
+            </div>
+            <p style="font-size: 0.88rem; color: #166534; line-height: 1.6; margin-bottom: 0.85rem;">
+                Every food consignment undergoes a mandatory 4-point safety check before distribution to hungry communities:
+            </p>
+            <ul style="font-size: 0.84rem; color: #14532D; padding-left: 1.25rem; line-height: 1.7; margin-bottom: 0;">
+                <li><strong>Thermal Chain Verification:</strong> Hot foods held at &ge;65°C; chilled foods at &le;5°C in insulated containers.</li>
+                <li><strong>Organoleptic Sensory Testing:</strong> Aroma, color, texture, and zero fungal/microbial spoilage checked.</li>
+                <li><strong>Food-Grade Packaging:</strong> Sealed, tamper-evident food-grade materials to prevent transit contamination.</li>
+                <li><strong>Strict Consumption Window:</strong> Enforcing the 4-hour safe window between preparation and human consumption.</li>
+            </ul>
+        </div>
+
+        <!-- What is Done with Waste Food -->
+        <div style="background: #FEF9C3; border: 1px solid #FEF08A; border-radius: var(--radius-md); padding: 1.5rem; position: relative;">
+            <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.75rem;">
+                <div style="width: 42px; height: 42px; border-radius: 10px; background: #FEF08A; color: #854D0E; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                    <i class="fa-solid fa-recycle"></i>
+                </div>
+                <div>
+                    <h4 style="color: #713F12; font-size: 1.1rem; margin: 0;">What Happens to Waste Food? (Circular Valorization)</h4>
+                    <span style="font-size: 0.78rem; color: #854D0E; font-weight: 700; text-transform: uppercase;">Zero-Landfill Processing Streams</span>
+                </div>
+            </div>
+            <p style="font-size: 0.88rem; color: #854D0E; line-height: 1.6; margin-bottom: 0.85rem;">
+                Inedible food scraps, spoiled lots, and organic leftovers are never dumped in landfills. Instead, they are diverted into 3 circular recovery streams:
+            </p>
+            <ul style="font-size: 0.84rem; color: #713F12; padding-left: 1.25rem; line-height: 1.7; margin-bottom: 0;">
+                <li><strong>Aerobic Composting (Hadapsar Hub):</strong> Solid vegetative scraps and kitchen trimmings are converted into 100% natural, pathogen-free organic humus for farmers.</li>
+                <li><strong>Anaerobic Biogas Digesters (Kothrud Hub):</strong> Wet cooked gravies and canteen waste are digested to produce Bio-CNG for municipal waste trucks and clean fuel.</li>
+                <li><strong>Packaging Recycling (Shivajinagar Hub):</strong> Food containers, boxes, and foil are sorted, cleaned, and supplied to certified industrial upcyclers.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- Contribution in Nature: How Food Donation & Management Helps the Planet    -->
+<!-- ========================================================================= -->
+<section class="nature-section" id="nature-contribution">
+    <!-- Header -->
+    <div class="nature-header">
+        <span class="nature-badge"><i class="fa-solid fa-earth-americas"></i> Planetary Stewardship & Bio-Economy</span>
+        <h2 class="nature-title">Contribution in Nature: How Food Donation & Management Heals the Planet</h2>
+        <p class="nature-subtitle">
+            Food loss and waste causes <strong>8–10% of global greenhouse gas emissions</strong> and consumes <strong>21% of all agricultural fresh water</strong>. 
+            By systematically rescuing edible surplus for human nutrition and valorizing inedible organic scraps into living compost and renewable bio-energy, 
+            our platform converts an ecological crisis into a regenerative, closed-loop contribution to nature.
+        </p>
+    </div>
+
+    <!-- Live Ecological Counter from Database -->
+    <div class="grid-4" style="margin-bottom: 2.5rem;">
+        <div class="stat-card" style="border-top: 3px solid #0284C7;">
+            <div class="stat-icon blue">
+                <i class="fa-solid fa-cloud-arrow-down"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ eco_metrics.co2_abated }} kg</div>
+                <div class="stat-label">CO₂e Emissions Prevented</div>
+            </div>
+        </div>
+
+        <div class="stat-card" style="border-top: 3px solid #0D9488;">
+            <div class="stat-icon green">
+                <i class="fa-solid fa-droplet"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ "{:,}".format(eco_metrics.water_saved) }} L</div>
+                <div class="stat-label">Freshwater Conserved</div>
+            </div>
+        </div>
+
+        <div class="stat-card" style="border-top: 3px solid #16A34A;">
+            <div class="stat-icon green">
+                <i class="fa-solid fa-tree"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ eco_metrics.trees_equiv }}</div>
+                <div class="stat-label">Tree-Year Carbon Equivalent</div>
+            </div>
+        </div>
+
+        <div class="stat-card" style="border-top: 3px solid #D97706;">
+            <div class="stat-icon orange">
+                <i class="fa-solid fa-seedling"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ eco_metrics.compost_kg }} kg</div>
+                <div class="stat-label">Organic Humus Potential</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 Core Ecological Pillars of Contribution -->
+    <div class="nature-pillars-grid">
+        <!-- Pillar 1: Methane Abatement -->
+        <div class="nature-pillar-card">
+            <div class="nature-card-icon-wrap icon-wrap-methane">
+                <i class="fa-solid fa-cloud-arrow-down"></i>
+            </div>
+            <h3 class="nature-pillar-title">1. Methane (CH₄) Abatement at Landfills</h3>
+            <span class="nature-pillar-stat"><i class="fa-solid fa-bolt"></i> 86x More Potent Than CO₂</span>
+            <p class="nature-pillar-desc">
+                When organic food waste is buried in landfills, anaerobic decomposition generates concentrated methane ($CH_4$) gas, 
+                which traps 86 times more atmospheric heat than $CO_2$ over a 20-year timescale. Diverting surplus food stops landfill 
+                methane production at the source.
+            </p>
+            <div class="nature-pillar-footer">
+                <i class="fa-solid fa-shield-halved" style="color: #0284C7;"></i> Prevents smog & urban atmospheric warming
+            </div>
+        </div>
+
+        <!-- Pillar 2: Water Conservation -->
+        <div class="nature-pillar-card">
+            <div class="nature-card-icon-wrap icon-wrap-water">
+                <i class="fa-solid fa-droplet"></i>
+            </div>
+            <h3 class="nature-pillar-title">2. Conserving Embedded Freshwater</h3>
+            <span class="nature-pillar-stat"><i class="fa-solid fa-water"></i> ~650 Liters Saved / Kg Rescued</span>
+            <p class="nature-pillar-desc">
+                Agriculture accounts for 70% of global freshwater withdrawals. When cooked meals and farm produce are discarded, 
+                all the embedded water used for crop irrigation, processing, and transportation is wasted. Rescuing 1 kg of food saves 
+                hundreds of liters of vital groundwater.
+            </p>
+            <div class="nature-pillar-footer">
+                <i class="fa-solid fa-faucet-drip" style="color: #0D9488;"></i> Recharges depleted underground aquifers
+            </div>
+        </div>
+
+        <!-- Pillar 3: Biodiversity & Land Protection -->
+        <div class="nature-pillar-card">
+            <div class="nature-card-icon-wrap icon-wrap-forest">
+                <i class="fa-solid fa-tree"></i>
+            </div>
+            <h3 class="nature-pillar-title">3. Biodiversity & Sparing Arable Land</h3>
+            <span class="nature-pillar-stat"><i class="fa-solid fa-mountain-sun"></i> 1.4B Hectares Spared Globally</span>
+            <p class="nature-pillar-desc">
+                Unconsumed food occupies 28% of the world's total agricultural land surface. By efficiently matching food surplus with 
+                hungry communities, we reduce the demand to clear wild forests, grasslands, and wetlands for additional agricultural land, 
+                protecting wildlife and pollinators.
+            </p>
+            <div class="nature-pillar-footer">
+                <i class="fa-solid fa-leaf" style="color: #16A34A;"></i> Halts deforestation and biodiversity loss
+            </div>
+        </div>
+
+        <!-- Pillar 4: Restoring Living Soil Biology -->
+        <div class="nature-pillar-card">
+            <div class="nature-card-icon-wrap icon-wrap-compost">
+                <i class="fa-solid fa-seedling"></i>
+            </div>
+            <h3 class="nature-pillar-title">4. Restoring Living Topsoil (Compost)</h3>
+            <span class="nature-pillar-stat"><i class="fa-solid fa-recycle"></i> 100% Organic Soil Humus</span>
+            <p class="nature-pillar-desc">
+                Inedible food scraps segregated at municipal collection centers undergo microbial aerobic composting. This process creates 
+                nutrient-dense biological humus containing vital Nitrogen (N), Phosphorus (P), and Potassium (K), restoring degraded topsoils 
+                without synthetic chemicals.
+            </p>
+            <div class="nature-pillar-footer">
+                <i class="fa-solid fa-plant-wilt" style="color: #D97706;"></i> Reverses topsoil erosion & desertification
+            </div>
+        </div>
+
+        <!-- Pillar 5: Clean Renewable Bio-Energy -->
+        <div class="nature-pillar-card">
+            <div class="nature-card-icon-wrap icon-wrap-energy">
+                <i class="fa-solid fa-bolt"></i>
+            </div>
+            <h3 class="nature-pillar-title">5. Clean Renewable Bio-Energy (Bio-CNG)</h3>
+            <span class="nature-pillar-stat"><i class="fa-solid fa-fire"></i> Displacing Fossil Fuels</span>
+            <p class="nature-pillar-desc">
+                High-moisture organic waste processed in anaerobic digestion hubs is transformed into purified biomethane (Bio-CNG) 
+                and bio-slurry. This green fuel powers municipal vehicles and clean thermal cookstoves, reducing urban reliance 
+                on imported fossil fuels and coal.
+            </p>
+            <div class="nature-pillar-footer">
+                <i class="fa-solid fa-charging-station" style="color: #DC2626;"></i> Powers clean municipal circular transport
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Nature Impact Calculator -->
+    <div class="nature-calc-box">
+        <div class="nature-calc-header">
+            <div class="nature-calc-title">
+                <i class="fa-solid fa-calculator" style="color: #52B788;"></i> Interactive Ecological Impact Calculator
+            </div>
+            <span style="font-size: 0.85rem; color: #D8F3DC; background: rgba(255,255,255,0.12); padding: 0.35rem 0.85rem; border-radius: 9999px;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Slide to preview real-world planetary return
+            </span>
+        </div>
+
+        <div class="calc-slider-wrap">
+            <div class="calc-slider-label">
+                <span><i class="fa-solid fa-weight-hanging"></i> Surplus Food Quantity to Rescue:</span>
+                <span id="homeSliderValueDisplay" style="font-size: 1.3rem; font-weight: 800; color: #52B788;">50 kg</span>
+            </div>
+            <input type="range" min="5" max="500" value="50" step="5" class="calc-slider-input" id="homeNatureSlider" oninput="updateHomeNatureCalc(this.value)">
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94A3B8; margin-top: 0.4rem;">
+                <span>5 kg (Small Kitchen Batch)</span>
+                <span>250 kg (Hotel Buffet)</span>
+                <span>500 kg (Large Wedding / Festival)</span>
+            </div>
+        </div>
+
+        <div class="calc-results-grid">
+            <div class="calc-result-tile">
+                <div class="calc-result-icon" style="color: #52B788;"><i class="fa-solid fa-bowl-food"></i></div>
+                <div class="calc-result-value" id="homeCalcMeals">125</div>
+                <div class="calc-result-unit">Wholesome Meals</div>
+            </div>
+
+            <div class="calc-result-tile">
+                <div class="calc-result-icon" style="color: #38BDF8;"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                <div class="calc-result-value" id="homeCalcCO2">95.0</div>
+                <div class="calc-result-unit">kg CO₂e Diverted</div>
+            </div>
+
+            <div class="calc-result-tile">
+                <div class="calc-result-icon" style="color: #2DD4BF;"><i class="fa-solid fa-droplet"></i></div>
+                <div class="calc-result-value" id="homeCalcWater">32,500</div>
+                <div class="calc-result-unit">Liters Water Saved</div>
+            </div>
+
+            <div class="calc-result-tile">
+                <div class="calc-result-icon" style="color: #4ADE80;"><i class="fa-solid fa-tree"></i></div>
+                <div class="calc-result-value" id="homeCalcTrees">4.4</div>
+                <div class="calc-result-unit">Tree-Years Equiv</div>
+            </div>
+
+            <div class="calc-result-tile">
+                <div class="calc-result-icon" style="color: #FBBF24;"><i class="fa-solid fa-seedling"></i></div>
+                <div class="calc-result-value" id="homeCalcCompost">17.5</div>
+                <div class="calc-result-unit">kg Living Humus</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Linear Waste Model vs. Circular Regenerative Model Comparison -->
+    <div class="nature-comparison-wrap">
+        <!-- Linear -->
+        <div class="comp-box comp-linear">
+            <div class="comp-title">
+                <i class="fa-solid fa-triangle-exclamation"></i> Traditional Linear Model (High Planetary Harm)
+            </div>
+            <ul class="comp-flow-list">
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">1</span>
+                    <div><strong>Excess Resource Extraction:</strong> High water pumping, chemical fertilizers, and heavy fossil fuel usage.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">2</span>
+                    <div><strong>Unchecked Surplus Disposal:</strong> Edible leftover food dumped together with mixed municipal trash.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">3</span>
+                    <div><strong>Anaerobic Landfill Decay:</strong> Deep burial blocks oxygen, triggering concentrated methane gas eruptions.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">4</span>
+                    <div><strong>Leachate Ground Contamination:</strong> Acidic decomposing liquids seep into groundwater aquifers and streams.</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Circular -->
+        <div class="comp-box comp-circular">
+            <div class="comp-title">
+                <i class="fa-solid fa-circle-check"></i> Smart Food Management Model (Restorative to Nature)
+            </div>
+            <ul class="comp-flow-list">
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">1</span>
+                    <div><strong>Real-Time Food Rescue:</strong> Edible surplus is claimed by certified NGOs within hours, feeding families.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">2</span>
+                    <div><strong>Clean Organic Segregation:</strong> Inedible food scraps routed to dedicated processing collection centers.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">3</span>
+                    <div><strong>Aerobic Microbial Composting:</strong> Returns vital nitrogen, phosphorus, and carbon directly to depleted topsoil.</div>
+                </li>
+                <li class="comp-flow-step">
+                    <span class="comp-step-num">4</span>
+                    <div><strong>Biogas Clean Energy:</strong> Anaerobic digesters capture biomethane to generate clean power and Bio-CNG.</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- UN Sustainable Development Goals (SDG) Alignment Strip -->
+    <div class="sdg-alignment-strip">
+        <div class="sdg-tagline">
+            <i class="fa-solid fa-award" style="color: #D4AF37; font-size: 1.25rem;"></i>
+            <span>Aligned with United Nations Sustainable Development Goals (UN SDGs)</span>
+        </div>
+        <div class="sdg-pills">
+            <span class="sdg-pill sdg-2"><i class="fa-solid fa-bowl-food"></i> SDG 2: Zero Hunger</span>
+            <span class="sdg-pill sdg-12"><i class="fa-solid fa-recycle"></i> SDG 12.3: Halve Food Waste</span>
+            <span class="sdg-pill sdg-13"><i class="fa-solid fa-cloud"></i> SDG 13: Climate Action</span>
+            <span class="sdg-pill sdg-15"><i class="fa-solid fa-tree"></i> SDG 15: Life on Land</span>
+        </div>
+    </div>
+</section>
+
+<!-- DBMS Project Highlights for Professor / Examiner -->
+<div class="card" style="background: #F8FBF8; border-color: #C7E9C0;">
+    <div class="card-header">
+        <div class="card-title" style="color: var(--primary);">
+            <i class="fa-solid fa-graduation-cap"></i> DBMS Examination Quick Reference
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a href="{{ url_for('er_diagram_view') }}" class="btn btn-sm btn-outline" style="border-color: var(--primary); color: var(--primary);"><i class="fa-solid fa-diagram-project"></i> View ER Diagram</a>
+            <a href="{{ url_for('viva_queries') }}" class="btn btn-sm btn-primary"><i class="fa-solid fa-terminal"></i> 16 Viva Queries Console</a>
+        </div>
+    </div>
+    <div class="grid-3" style="font-size: 0.9rem;">
+        <div>
+            <strong><i class="fa-solid fa-check-circle" style="color: var(--badge-green);"></i> Normalized Schema (3NF)</strong>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">
+                Eliminates transitive & partial dependencies across 9 tables with strict PK, FK, and unique constraints.
+            </p>
+        </div>
+        <div>
+            <strong><i class="fa-solid fa-check-circle" style="color: var(--badge-green);"></i> Triggers & Stored Procedures</strong>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">
+                Triggers update center occupancy automatically upon waste entry. Procedures enforce atomic claim locking.
+            </p>
+        </div>
+        <div>
+            <strong><i class="fa-solid fa-check-circle" style="color: var(--badge-green);"></i> Views & Analytics Queries</strong>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">
+                Pre-compiled SQL views calculate shelf-life countdowns, multi-table joins, and aggregate utilization rates.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateHomeNatureCalc(val) {
+    const kg = parseFloat(val);
+    document.getElementById('homeSliderValueDisplay').textContent = kg + ' kg';
+    
+    const meals = Math.round(kg * 2.5);
+    const co2 = (kg * 1.9).toFixed(1);
+    const water = Math.round(kg * 650);
+    const trees = (parseFloat(co2) / 21.7).toFixed(1);
+    const compost = (kg * 0.35).toFixed(1);
+    
+    document.getElementById('homeCalcMeals').textContent = meals.toLocaleString();
+    document.getElementById('homeCalcCO2').textContent = co2;
+    document.getElementById('homeCalcWater').textContent = water.toLocaleString();
+    document.getElementById('homeCalcTrees').textContent = trees;
+    document.getElementById('homeCalcCompost').textContent = compost;
+}
+</script>
+{% endblock %}

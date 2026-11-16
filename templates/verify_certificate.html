@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Certificate - Smart Food Rescue System{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 1.5rem auto;">
+    <div class="card">
+        <div class="card-header" style="flex-direction: column; text-align: center; border-bottom: none;">
+            <div style="font-size: 2.2rem; color: var(--primary); margin-bottom: 0.5rem;">
+                <i class="fa-solid fa-certificate"></i>
+            </div>
+            <h1 style="font-size: 1.8rem; color: var(--dark);">Official Certificate Verification Portal</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">
+                Authenticate Pune Municipal Food Rescue & Eco-Conversion certificates with tamper-proof cryptographic database records.
+            </p>
+        </div>
+
+        <!-- Verification Search Bar -->
+        <form action="{{ url_for('verify_certificate_post') }}" method="POST" style="margin: 1.5rem 0;">
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" name="cert_code" class="form-control" placeholder="Enter Certificate No (e.g. PMC-COA-2026-00008, PMC-FRC-2026-00008 or PMC-ECO-2026-00001)..." 
+                       value="{{ cert_code or '' }}" required style="font-size: 1.05rem; padding: 0.75rem 1rem;">
+                <button type="submit" class="btn btn-primary" style="padding: 0 1.75rem; white-space: nowrap;">
+                    <i class="fa-solid fa-shield-check"></i> Authenticate
+                </button>
+            </div>
+        </form>
+
+        <!-- Quick-Test Sample Certificates for DBMS Viva -->
+        <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.5rem;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-orange);"></i> 1-Click Verification Samples for Viva:
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="{{ url_for('verify_certificate_lookup', cert_code='PMC-COA-2026-00008') }}" class="btn btn-sm btn-outline">
+                    <i class="fa-solid fa-award" style="color: #D4AF37;"></i> PMC-COA-2026-00008 (Certificate of Appreciation)
+                </a>
+                <a href="{{ url_for('verify_certificate_lookup', cert_code='PMC-FRC-2026-00009') }}" class="btn btn-sm btn-outline">
+                    <i class="fa-solid fa-award" style="color: var(--primary);"></i> PMC-FRC-2026-00009 (Hyatt Grand Regency)
+                </a>
+                <a href="{{ url_for('verify_certificate_lookup', cert_code='PMC-ECO-2026-00001') }}" class="btn btn-sm btn-outline">
+                    <i class="fa-solid fa-recycle" style="color: var(--accent-green);"></i> PMC-ECO-2026-00001 (Hadapsar Composting)
+                </a>
+            </div>
+        </div>
+
+        <!-- Verification Results Card -->
+        {% if result %}
+            {% if result.valid %}
+                <div style="background: #E8F5E9; border: 2px solid var(--badge-green); border-radius: var(--radius-md); padding: 1.5rem; margin-top: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                        <i class="fa-solid fa-circle-check" style="font-size: 2rem; color: var(--badge-green);"></i>
+                        <div>
+                            <h3 style="color: var(--badge-green); font-size: 1.3rem; margin: 0;">CERTIFICATE VERIFIED & AUTHENTIC</h3>
+                            <div style="font-size: 0.85rem; color: #1B5E20;">Record verified in MySQL Database `food_waste_management`</div>
+                        </div>
+                    </div>
+
+                    <div class="grid-2" style="font-size: 0.9rem; background: #FFFFFF; padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid #C8E6C9;">
+                        <div>
+                            <span style="color: var(--text-muted);">Certificate Number:</span><br>
+                            <strong>{{ result.cert_code }}</strong>
+                        </div>
+                        <div>
+                            <span style="color: var(--text-muted);">Certificate Classification:</span><br>
+                            <span class="badge badge-available">{{ result.cert_type }}</span>
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <span style="color: var(--text-muted);">Awarded Recipient:</span><br>
+                            <strong style="color: var(--primary); font-size: 1.05rem;">{{ result.recipient }}</strong>
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <span style="color: var(--text-muted);">Date of Record:</span><br>
+                            <strong>{{ result.date }}</strong>
+                        </div>
+                        <div style="grid-column: span 2; margin-top: 0.5rem; border-top: 1px solid #E2E8F0; padding-top: 0.75rem;">
+                            <span style="color: var(--text-muted);">Certified Achievement:</span><br>
+                            <p style="margin-top: 0.2rem; color: var(--dark);">{{ result.summary }}</p>
+                        </div>
+                        <div style="grid-column: span 2; font-family: monospace; font-size: 0.8rem; background: #F8FAFC; padding: 0.5rem; border-radius: 4px;">
+                            <span style="color: var(--text-muted);">Cryptographic Audit Digest:</span> 
+                            <strong style="color: var(--primary);">SHA256:{{ result.hash_digest }}</strong>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
+                        {% if result.is_donation %}
+                            <a href="{{ url_for('donation_certificate', donation_id=result.record_id) }}" class="btn btn-primary" target="_blank">
+                                <i class="fa-solid fa-print"></i> View & Print Full Certificate
+                            </a>
+                        {% elif result.is_process %}
+                            <a href="{{ url_for('process_certificate', process_id=result.record_id) }}" class="btn btn-primary" target="_blank">
+                                <i class="fa-solid fa-print"></i> View & Print Full Certificate
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div style="background: #FFEBEE; border: 2px solid var(--badge-red); border-radius: var(--radius-md); padding: 1.5rem; margin-top: 1rem; text-align: center;">
+                    <i class="fa-solid fa-circle-xmark" style="font-size: 2.2rem; color: var(--badge-red); margin-bottom: 0.5rem;"></i>
+                    <h3 style="color: var(--badge-red);">Certificate Record Not Found</h3>
+                    <p style="font-size: 0.9rem; color: #7F1D1D; margin-top: 0.25rem;">
+                        The certificate code <strong>"{{ cert_code }}"</strong> could not be matched against any verified completed donation or eco-processing record.
+                    </p>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

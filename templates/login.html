@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In - Smart Food Waste Reduction & Donation Management System{% endblock %}
+
+{% block content %}
+<div style="max-width: 520px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header" style="justify-content: center; flex-direction: column; text-align: center;">
+            <div style="font-size: 2.2rem; color: var(--primary); margin-bottom: 0.5rem;">
+                <i class="fa-solid fa-seedling"></i>
+            </div>
+            <h2 style="font-size: 1.5rem; color: var(--dark);">Welcome Back</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Sign in to access your role-specific dashboard</p>
+        </div>
+
+        <!-- Quick Demo Fill Strip for DBMS Viva / Demonstration -->
+        <div style="background: #F1F5F9; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 1.5rem;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-orange);"></i> Quick-Fill Demo Accounts for Viva:
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-outline" onclick="fillCredentials('admin')">
+                    <i class="fa-solid fa-shield-halved"></i> Admin
+                </button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="fillCredentials('donor')">
+                    <i class="fa-solid fa-utensils"></i> Donor
+                </button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="fillCredentials('ngo')">
+                    <i class="fa-solid fa-hand-holding-heart"></i> NGO
+                </button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="fillCredentials('recycler')">
+                    <i class="fa-solid fa-recycle"></i> Recycler
+                </button>
+            </div>
+        </div>
+
+        <form action="{{ url_for('login', next=request.args.get('next')) }}" method="POST">
+            <div class="form-group">
+                <label for="login-email" class="form-label">Email Address</label>
+                <input type="email" id="login-email" name="email" class="form-control" placeholder="e.g. donor.greenleaf@gmail.com" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="login-password" class="form-label">Password</label>
+                <input type="password" id="login-password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In to Account
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+            Don't have an account yet? 
+            <a href="{{ url_for('register') }}" style="color: var(--primary); font-weight: 600; text-decoration: none;">Register Here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
